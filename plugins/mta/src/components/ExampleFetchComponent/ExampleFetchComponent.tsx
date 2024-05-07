@@ -111,10 +111,20 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
 export const ExampleFetchComponent = () => {
   const api = useApi(mtaApiRef);
   const entity = useEntity();
-  // if (!entity) {
-  //   // TODO: this is probably bad
-  //   return <Progress />;
-  // }
+  console.log('Entity data:', entity);
+  if (!entity) {
+    return (
+      <ResponseErrorPanel
+        title="No entity context available"
+        error={
+          new Error('This component must be used within an entity context.')
+        }
+      />
+    );
+  }
+
+  console.log('Entity data:', entity);
+
   const entityID = entity.entity.metadata.uid ?? '';
 
   const { value, loading, error } = useAsync(async (): Promise<
