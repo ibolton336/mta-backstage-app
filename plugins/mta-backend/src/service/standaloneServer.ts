@@ -35,11 +35,10 @@ export async function startStandaloneServer(
     cache,
   };
 
-  const router = await createRouter(routerOptions);
+  // const router = await createRouter(routerOptions);
 
-  let service = createServiceBuilder(module)
-    .setPort(port)
-    .addRouter('/mta', router);
+  let service = createServiceBuilder(module).setPort(port);
+  // .addRouter('/mta', router);
 
   if (enableCors) {
     service = service.enableCors({ origin: 'http://localhost:3000' });
