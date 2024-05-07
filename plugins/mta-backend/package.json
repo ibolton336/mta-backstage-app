@@ -29,6 +29,7 @@
     "@backstage/backend-plugin-api": "^0.6.17",
     "@backstage/config": "^1.2.0",
     "@backstage/plugin-auth-node": "^0.4.12",
+    "@backstage/plugin-catalog-node": "^1.11.1",
     "@janus-idp/backend-plugin-manager": "^0.0.2-janus.5",
     "@types/express": "*",
     "express": "^4.17.1",

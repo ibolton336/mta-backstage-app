@@ -140,6 +140,11 @@ export async function createRouter(
     response.redirect(continueTo?.toString() ?? frontEndBaseURL);
   });
 
+  router.get('/testing', (_, response) => {
+    logger.info('PONG!');
+    response.json({ status: 'ok' });
+  });
+
   router.use(errorHandler());
   return router;
 }

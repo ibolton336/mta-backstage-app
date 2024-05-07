@@ -5,6 +5,9 @@ import {
   createBackendModule,
 } from '@backstage/backend-plugin-api';
 import { createRouter } from './service/router';
+// import { MTAProvider } from '../../catalog-backend-module-mta/src/provider/MTAEntityProvider';
+
+// eslint-disable-next-line @backstage/no-relative-monorepo-imports
 import { MTAProvider } from '../../catalog-backend-module-mta/src/provider/MTAEntityProvider';
 // import { MTAProvider } from '@internal/plugin-catalog-backend-module-mta/src/provider/MTAEntityProvider';
 // import { MTAProvider } from '@internal/plugin-catalog-backend-module-mta/src/provider/MTAEntityProvider';
@@ -32,7 +35,7 @@ export const mtaPlugin = createBackendPlugin({
         logger.info('Hello from example plugin');
         const winstonLogger = loggerToWinstonLogger(logger);
 
-        winstonLogger.info('Url:' + config.getString('mta.url'));
+        winstonLogger.info(`Url: ${config.getString('mta.url')}`);
 
         const pluginCacheManager = cacheToPluginCacheManager(cache);
 
