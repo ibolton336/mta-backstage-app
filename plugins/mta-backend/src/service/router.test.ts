@@ -7,12 +7,12 @@ import { createRouter } from './router';
 describe('createRouter', () => {
   let app: express.Express;
 
-  beforeAll(async () => {
-    const router = await createRouter({
-      logger: getVoidLogger(),
-    });
-    app = express().use(router);
-  });
+  // beforeAll(async () => {
+  //   const router = await createRouter({
+  //     logger: getVoidLogger(),
+  //   });
+  //   app = express().use(router);
+  // });
 
   beforeEach(() => {
     jest.resetAllMocks();

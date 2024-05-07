@@ -1,8 +1,16 @@
-import { createPlugin, createRoutableExtension, discoveryApiRef, identityApiRef } from '@backstage/core-plugin-api';
-import { createApiFactory, createApiExtension} from '@backstage/frontend-plugin-api';
+import {
+  createPlugin,
+  createRoutableExtension,
+  discoveryApiRef,
+  identityApiRef,
+} from '@backstage/core-plugin-api';
+import {
+  createApiFactory,
+  createApiExtension,
+} from '@backstage/frontend-plugin-api';
 
 import { rootRouteRef } from './routes';
-import { mtaApiRef, DefaultMtaApi } from './api/api.ts'
+import { mtaApiRef, DefaultMtaApi } from './api/api';
 
 // const exampleApi = createApiExtension({
 //   factory: createApiFactory({
@@ -17,11 +25,11 @@ export const mtaPlugin = createPlugin({
   apis: [
     createApiFactory({
       api: mtaApiRef,
-      deps: {discoveryApi: discoveryApiRef, identityApi: identityApiRef},
-      factory: ({discoveryApi, identityApi}) => {
+      deps: { discoveryApi: discoveryApiRef, identityApi: identityApiRef },
+      factory: ({ discoveryApi, identityApi }) => {
         return new DefaultMtaApi({ discoveryApi, identityApi });
-      }
-    })
+      },
+    }),
   ],
   routes: {
     entityContent: rootRouteRef,

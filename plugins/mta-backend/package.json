@@ -25,20 +25,23 @@
   },
   "dependencies": {
     "@backstage/backend-common": "^0.21.6",
-    "@backstage/config": "^1.2.0",
-    "@janus-idp/backend-plugin-manager": "^0.0.2-janus.5",
     "@backstage/backend-dynamic-feature-service": "^0.2.7",
+    "@backstage/backend-plugin-api": "^0.6.17",
+    "@backstage/config": "^1.2.0",
+    "@backstage/plugin-auth-node": "^0.4.12",
+    "@janus-idp/backend-plugin-manager": "^0.0.2-janus.5",
     "@types/express": "*",
     "express": "^4.17.1",
     "express-promise-router": "^4.1.0",
+    "knex": "^3.1.0",
     "node-fetch": "^2.6.7",
     "openid-client": "^5.6.4",
     "winston": "^3.2.1",
     "yn": "^4.0.0"
   },
   "devDependencies": {
-    "@janus-idp/cli": "^1.4.7",
     "@backstage/cli": "^0.26.2",
+    "@janus-idp/cli": "^1.4.7",
     "@types/supertest": "^2.0.12",
     "msw": "^1.0.0",
     "supertest": "^6.2.4"
