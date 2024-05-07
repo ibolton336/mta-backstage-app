@@ -35,7 +35,7 @@ export async function startStandaloneServer(
     cache,
   };
 
-  // const router = await createRouter(routerOptions);
+  const router = await createRouter(routerOptions);
 
   let service = createServiceBuilder(module).setPort(port);
   // .addRouter('/mta', router);
