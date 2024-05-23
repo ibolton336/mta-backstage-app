@@ -48,18 +48,58 @@ export async function createRouter(
   const router = Router();
   router.use(express.json());
 
-  router.get('/health', async (request, response) => {
-    logger.info('PING!');
-    response.json({ status: 'ok' });
+  router.get('/cb/*', async (request, response) => {
+    logger.info('PONG!');
+    const user: any = request.params[0] as string;
+    logger.info(`user in callback: ${user}`);
+    const continueTo = request.query.continueTo;
+    const u = new URL(`${backstageBaseURL}/api/mta/cb/${user}`);
+    if (continueTo) {
+      u.searchParams.set('continueTo', continueTo.toString());
+    }
+    logger.info(`in callback: ${u.toString()}`);
+    const params = authClient.callbackParams(request);
+    const tokenSet = await authClient.callback(u.toString(), params, {
+      code_verifier,
+    });
+    if (!tokenSet.access_token || !tokenSet.refresh_token) {
+      response.status(401);
+      response.json({});
+      return;
+    }
+    cacheClient.set(user, tokenSet.access_token, {
+      ttl: tokenSet.expires_in ?? 60 * 1000,
+    });
+    entityApplicationStorage.saveRefreshTokenForUser(
+      user,
+      tokenSet.refresh_token,
+    );
+    response.redirect(continueTo?.toString() ?? frontEndBaseURL);
+  });
+  router.use((req, res, next) => {
+    console.log(
+      `Rileys request Incoming request NOW: ${req.method} ${req.path}`,
+    );
+    next();
   });
 
   router.use(async (request, response, next) => {
     logger.info(`path: ${request.path}`);
     if (request.path.includes('/cb') || request.path.includes('/health')) {
+      console.log('includes cb then next');
       next();
       return;
     }
     const backstageID = await identity.getIdentity({ request });
+    logger.info(
+      `backstageID id for userEntityRef: ${backstageID?.identity.userEntityRef}`,
+    );
+    logger.info({
+      backstageBaseURL,
+      frontEndBaseURL,
+      requestHeaders: request.headers,
+      referer: request.headers.referer,
+    });
     const id = backstageID?.identity.userEntityRef ?? 'undefined';
     const u = new URL(`${backstageBaseURL}/api/mta/cb/${id}`);
     const org = request.headers.referer;
@@ -74,13 +114,27 @@ export async function createRouter(
       String(id),
     );
 
+    console.log({
+      backstageBaseURL,
+      frontEndBaseURL,
+      requestHeaders: request.headers,
+      referer: request.headers.referer,
+      accessToken,
+      refreshToken,
+      u: u.toString(),
+      id,
+    });
     if (!accessToken && !refreshToken) {
+      console.log('u.toString', u.toString());
+      console.log('u redirect uri!', u);
       const authorizationURL = authClient.authorizationUrl({
         redirect_uri: u.toString(),
+        // redirect_uri: 'http://localhost:7007/api/mta/cb/user:development/guest',
         code_challenge,
         code_challenge_method: 'S256',
       });
       response.statusCode = 401;
+      logger.info(`no token found`, { authorizationURL });
       response.json({ loginURL: authorizationURL });
       return;
     }
@@ -112,11 +166,6 @@ export async function createRouter(
     next();
   });
 
-  router.get('/health', async (request, response) => {
-    logger.info('PING!');
-    response.json({ status: 'ok' });
-  });
-
   router.get('/cb/:username', async (request, response) => {
     logger.info('PONG!');
     const user = request.params.username;
@@ -144,6 +193,11 @@ export async function createRouter(
       tokenSet.refresh_token,
     );
     response.redirect(continueTo?.toString() ?? frontEndBaseURL);
+  });
+
+  router.get('/health', async (request, response) => {
+    logger.info('PING!');
+    response.json({ status: 'ok' });
   });
 
   router.get('/testing', (_, response) => {

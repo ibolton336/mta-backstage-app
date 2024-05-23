@@ -111,7 +111,7 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
 export const ExampleFetchComponent = () => {
   const api = useApi(mtaApiRef);
   const entity = useEntity();
-  console.log('Entity data:', entity);
+  // console.log('Entity data:', entity);
   if (!entity) {
     return (
       <ResponseErrorPanel
@@ -123,9 +123,10 @@ export const ExampleFetchComponent = () => {
     );
   }
 
-  console.log('Entity data:', entity);
+  // console.log('Entity data:', entity);
 
   const entityID = entity.entity.metadata.uid ?? '';
+  const appID = entity.entity.metadata.id ?? '';
 
   const { value, loading, error } = useAsync(async (): Promise<
     Application[] | URL | Application
@@ -167,7 +168,7 @@ export const ExampleFetchComponent = () => {
     const e = Error('fix me');
     return <ResponseErrorPanel title="unable to contact MTA" error={e} />;
   }
-
+  // console.log('value:', value);
   if (value instanceof URL) {
     return <LoginToMTACard url={value} />;
   }

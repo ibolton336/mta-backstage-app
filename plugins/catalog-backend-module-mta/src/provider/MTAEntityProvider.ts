@@ -89,6 +89,21 @@ export class MTAProvider implements EntityProvider {
       this.logger.info('unable to access hub');
     }
 
+    console.log({
+      code_verifier,
+      code_challenge,
+      tokenSet,
+      baseURLAuth,
+      baseURLHub,
+    });
+    this.logger.info({
+      code_verifier,
+      code_challenge,
+      tokenSet,
+      baseURLAuth,
+      baseURLHub,
+    });
+
     const getResponse = await fetch(`${baseURLHub}/applications`, {
       credentials: 'include',
       headers: {
@@ -128,10 +143,11 @@ export class MTAProvider implements EntityProvider {
                 'backstage.io/managed-by-origin-location': `url:${baseURLHub}/application/${application.id}`,
               },
               name: name,
+              id: application.id,
               namespace: 'default',
             },
             spec: {
-              type: 'service', // corrected typo "serivce" to "service"
+              type: 'service',
               lifecycle: 'experimental',
               owner: 'unknown',
             },

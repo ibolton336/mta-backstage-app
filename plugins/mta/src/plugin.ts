@@ -3,6 +3,7 @@ import {
   createRoutableExtension,
   discoveryApiRef,
   identityApiRef,
+  configApiRef,
 } from '@backstage/core-plugin-api';
 import {
   createApiFactory,
@@ -25,7 +26,11 @@ export const mtaPlugin = createPlugin({
   apis: [
     createApiFactory({
       api: mtaApiRef,
-      deps: { discoveryApi: discoveryApiRef, identityApi: identityApiRef },
+      deps: {
+        discoveryApi: discoveryApiRef,
+        identityApi: identityApiRef,
+        config: configApiRef,
+      },
       factory: ({ discoveryApi, identityApi }) => {
         return new DefaultMtaApi({ discoveryApi, identityApi });
       },

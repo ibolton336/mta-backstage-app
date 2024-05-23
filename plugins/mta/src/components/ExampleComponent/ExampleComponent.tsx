@@ -9,6 +9,7 @@ import {
   HeaderLabel,
   SupportButton,
 } from '@backstage/core-components';
+import { EntityProvider } from '@backstage/plugin-catalog-react';
 import { ExampleFetchComponent } from '../ExampleFetchComponent';
 
 export const ExampleComponent = () => (
