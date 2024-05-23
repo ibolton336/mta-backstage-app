@@ -9,6 +9,7 @@ import { IdentityApi } from '@backstage/plugin-auth-node';
 import { Logger } from 'winston';
 import { Issuer, generators } from 'openid-client';
 import { DataBaseEntityApplicationStorage } from '../database/storage';
+import { isTokenExpired } from '../utils';
 
 export interface RouterOptions {
   logger: Logger;
@@ -110,9 +111,25 @@ export async function createRouter(
     );
     logger.info(`here: ${u.toString()}`);
     let accessToken = await cacheClient.get(String(id));
+
     const refreshToken = await entityApplicationStorage.getRefreshTokenForUser(
       String(id),
     );
+
+    if (refreshToken) {
+      const expired = isTokenExpired(refreshToken.toString());
+      if (expired) {
+        console.log('Refresh token has expired. Redirecting to login.');
+        const authorizationURL = authClient.authorizationUrl({
+          redirect_uri: u.toString(),
+          code_challenge,
+          code_challenge_method: 'S256',
+        });
+        response.statusCode = 401;
+        response.json({ loginURL: authorizationURL });
+        return;
+      }
+    }
 
     console.log({
       backstageBaseURL,

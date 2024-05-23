@@ -111,7 +111,7 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
 export const ExampleFetchComponent = () => {
   const api = useApi(mtaApiRef);
   const entity = useEntity();
-  // console.log('Entity data:', entity);
+  console.log('Entity data:', entity);
   if (!entity) {
     return (
       <ResponseErrorPanel
@@ -131,15 +131,16 @@ export const ExampleFetchComponent = () => {
   const { value, loading, error } = useAsync(async (): Promise<
     Application[] | URL | Application
   > => {
-    const application = await api.getApplication(entityID);
-    if (application) {
-      if (application instanceof URL) {
-        // HEre we need to redirect them to loging MTA.
-        // console.log('we have a url');
-        return application;
-      }
-      return application;
-    }
+    // const application = await api.getApplication(entityID);
+
+    // if (application) {
+    //   if (application instanceof URL) {
+    //     // HEre we need to redirect them to loging MTA.
+    //     // console.log('we have a url');
+    //     return application;
+    //   }
+    //   return application;
+    // }
 
     // Would use fetch in a real world example
     const applications = await api.getApplications();
@@ -162,7 +163,8 @@ export const ExampleFetchComponent = () => {
   if (loading) {
     return <Progress />;
   } else if (error) {
-    // console.log(error.stack);
+    console.log(error.stack);
+    console.log('here is an error');
     return <ResponseErrorPanel error={error} />;
   } else if (!value) {
     const e = Error('fix me');
