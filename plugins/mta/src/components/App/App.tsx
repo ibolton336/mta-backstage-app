@@ -10,9 +10,9 @@ import {
   SupportButton,
 } from '@backstage/core-components';
 import { EntityProvider } from '@backstage/plugin-catalog-react';
-import { ExampleFetchComponent } from '../ExampleFetchComponent';
+import { MTAApplicationManager } from '../MTAApplicationManager/MTAApplicationManager';
 
-export const ExampleComponent = () => (
+export const App = () => (
   <Page themeId="tool">
     <Header title="Application Moderinization and Migration Info" />
     <Content>
@@ -20,7 +20,7 @@ export const ExampleComponent = () => (
         <SupportButton>A description of your plugin goes here.</SupportButton>
       </ContentHeader>
       <Grid container spacing={3} direction="column">
-        <ExampleFetchComponent />
+        <MTAApplicationManager />
       </Grid>
     </Content>
   </Page>
