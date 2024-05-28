@@ -221,6 +221,102 @@ export async function createRouter(
     logger.info('PONG!');
     response.json({ status: 'ok' });
   });
+  router.get('/applications', async (request, response) => {
+    const getResponse = fetch(baseURLHub + '/applications', {
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json, text/plain, */*',
+        Authorization: 'Bearer ' + response.locals.accessToken,
+      },
+      method: 'GET',
+    });
+
+    const status = await (await getResponse).status;
+    if (status != 200) {
+      response.status(status);
+      response.json({ status: status });
+      return;
+    }
+    const j = await (await getResponse).json();
+    response.json(j);
+  });
+
+  router.get('/application/entity/:id', async (request, response) => {
+    const applicatonID =
+      await entityApplicationStorage.getApplicationIDForEntity(
+        request.params.id,
+      );
+    if (!applicatonID) {
+      response.status(404);
+      response.json({ message: 'no application mapped' });
+      return;
+    }
+
+    logger.info('found application: ' + applicatonID);
+
+    const getResponse = fetch(baseURLHub + '/applications/' + applicatonID, {
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json, text/plain, */*',
+        Authorization: 'Bearer ' + response.locals.accessToken,
+      },
+      method: 'GET',
+    });
+
+    const status = await (await getResponse).status;
+    if (status != 200) {
+      response.status(status);
+      response.json({ status: status });
+      return;
+    }
+    const j = await (await getResponse).json();
+    response.json(j);
+  });
+
+  router.post('/application/entity', async (request, response) => {
+    const { entityID, applicationID } = request.body;
+    logger.info('attempting to save: ' + entityID + ' ' + applicationID);
+    const res = await entityApplicationStorage.saveApplicationIDForEntity(
+      entityID,
+      applicationID,
+    );
+    logger.info(
+      'attempting to save: ' + entityID + ' ' + applicationID + ' result' + res,
+    );
+    if (!res) {
+      response.status(500);
+      response.json({});
+      return;
+    }
+
+    response.status(201);
+    response.json({ entityID: entityID, applicationID: applicationID });
+    return;
+  });
+
+  router.get('/issues/:id', async (request, response) => {
+    const getResponse = fetch(
+      baseURLHub + '/applications/' + request.params.id + '/analysis/issues',
+      {
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+          Authorization: 'Bearer ' + response.locals.accessToken,
+        },
+        method: 'GET',
+      },
+    );
+
+    const status = await (await getResponse).status;
+    if (status != 200) {
+      logger.error('resposne does not make sense %s', getResponse);
+      response.status(status);
+      response.json({ status: status });
+      return;
+    }
+    const j = await (await getResponse).json();
+    response.json(j);
+  });
 
   router.use(errorHandler());
   return router;

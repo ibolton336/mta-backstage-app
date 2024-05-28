@@ -59,11 +59,18 @@ integrations:
     # - host: ghe.example.net
     #   apiBaseUrl: https://ghe.example.net/api/v3
     #   token: ${GHE_TOKEN}
-
 proxy:
-  skipInvalidProxies: true
-  endpoints:
-    {}
+  '/mta-proxy':
+    target: 'https://mta-openshift-mta.ibolton-dev-cluster-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud'
+    changeOrigin: true
+    secure: true
+    headers:
+      Authorization: 'Bearer ${MTA_AUTH_TOKEN}'  # This should be set in your environment variables
+
+# proxy:
+#   skipInvalidProxies: true
+#   endpoints:
+#     {}
   ### Example for how to add a proxy endpoint for the frontend.
   ### A typical reason to do this is to handle HTTPS and CORS for internal services.
   # endpoints:

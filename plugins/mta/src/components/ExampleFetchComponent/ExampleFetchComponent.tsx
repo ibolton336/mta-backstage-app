@@ -131,16 +131,16 @@ export const ExampleFetchComponent = () => {
   const { value, loading, error } = useAsync(async (): Promise<
     Application[] | URL | Application
   > => {
-    // const application = await api.getApplication(entityID);
+    const application = await api.getApplication(entityID);
 
-    // if (application) {
-    //   if (application instanceof URL) {
-    //     // HEre we need to redirect them to loging MTA.
-    //     // console.log('we have a url');
-    //     return application;
-    //   }
-    //   return application;
-    // }
+    if (application) {
+      if (application instanceof URL) {
+        // HEre we need to redirect them to loging MTA.
+        console.log('we have a url');
+        return application;
+      }
+      return application;
+    }
 
     // Would use fetch in a real world example
     const applications = await api.getApplications();
