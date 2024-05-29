@@ -14,6 +14,7 @@ import { mtaApiRef, Application, MTAApi } from '../../api/api';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { DenseApplicationTable } from '../DenseApplicationTable/DenseApplicationTable';
+import { LoginToMTACard } from '../LoginToMTACard/LoginToMTACard';
 
 // type DenseApplicationTableProps = {
 //   applications: Application[];
@@ -77,27 +78,6 @@ import { DenseApplicationTable } from '../DenseApplicationTable/DenseApplication
 //   );
 // };
 
-type loginPageProps = {
-  url: URL;
-};
-
-export const LoginToMTACard = ({ url }: loginPageProps) => {
-  return (
-    <Grid item>
-      <InfoCard title="Please Login">
-        <Button
-          variant="outlined"
-          color="primary"
-          size="large"
-          href={url.toString()}
-        >
-          Login To MTA
-        </Button>
-      </InfoCard>
-    </Grid>
-  );
-};
-
 type ApplicationCardProps = {
   application: Application;
 };
@@ -112,7 +92,6 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => {
 export const MTAApplicationManager = () => {
   const api = useApi(mtaApiRef);
   const entity = useEntity();
-  console.log('Entity data:', entity);
   if (!entity) {
     return (
       <ResponseErrorPanel
@@ -137,7 +116,6 @@ export const MTAApplicationManager = () => {
     if (application) {
       if (application instanceof URL) {
         // HEre we need to redirect them to loging MTA.
-        console.log('we have a url');
         return application;
       }
       return application;
@@ -164,8 +142,6 @@ export const MTAApplicationManager = () => {
   if (loading) {
     return <Progress />;
   } else if (error) {
-    console.log(error.stack);
-    console.log('here is an error');
     return <ResponseErrorPanel error={error} />;
   } else if (!value) {
     const e = Error('fix me');
