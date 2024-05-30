@@ -1,12 +1,12 @@
 import React from 'react';
-import { ExampleComponent } from './ExampleComponent';
+import { ExampleComponent } from './App';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { screen } from '@testing-library/react';
 import {
   setupRequestMockHandlers,
   renderInTestApp,
-} from "@backstage/test-utils";
+} from '@backstage/test-utils';
 
 describe('ExampleComponent', () => {
   const server = setupServer();

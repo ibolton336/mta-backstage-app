@@ -1,14 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ExampleFetchComponent } from './ExampleFetchComponent';
+import { ExampleFetchComponent } from './MTAApplicationManager';
 
-describe('ExampleFetchComponent', () => {
+describe('MTAApplicationManager', () => {
   it('renders the user table', async () => {
     render(<ExampleFetchComponent />);
 
     // Wait for the table to render
     const table = await screen.findByRole('table');
-    const nationality = screen.getAllByText("GB")
+    const nationality = screen.getAllByText('GB');
     // Assert that the table contains the expected user data
     expect(table).toBeInTheDocument();
     expect(screen.getByAltText('Carolyn')).toBeInTheDocument();

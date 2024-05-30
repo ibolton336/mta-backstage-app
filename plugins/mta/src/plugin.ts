@@ -44,8 +44,7 @@ export const mtaPlugin = createPlugin({
 export const EntityMTAContent = mtaPlugin.provide(
   createRoutableExtension({
     name: 'EntityMtaContent',
-    component: () =>
-      import('./components/ExampleComponent').then(m => m.ExampleComponent),
+    component: () => import('./components/App/App').then(m => m.App),
     mountPoint: rootRouteRef,
   }),
 );
