@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid } from '@material-ui/core';
+import { Grid, Typography } from '@material-ui/core';
 import {
   Progress,
   ResponseErrorPanel,
@@ -28,12 +28,25 @@ export const AppCard = ({ entityID }: AppCardProps) => {
     );
   }
 
+  //   if (!application) {
+  //     return (
+  //       <ResponseErrorPanel
+  //         title="Unable to find application"
+  //         error={new Error('Application data is missing')}
+  //       />
+  //     );
+  //   }
+
+  // Handle null (no application found) distinctly from errors
   if (!application) {
     return (
-      <ResponseErrorPanel
-        title="Unable to find application"
-        error={new Error('Application data is missing')}
-      />
+      <Grid item xs={12} md={6}>
+        <InfoCard title="No Application Found">
+          <Typography variant="body1">
+            No application data available for this ID.
+          </Typography>
+        </InfoCard>
+      </Grid>
     );
   }
 

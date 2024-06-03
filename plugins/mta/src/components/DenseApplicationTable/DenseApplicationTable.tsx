@@ -3,7 +3,10 @@ import { InfoCard, Table, TableColumn } from '@backstage/core-components';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import { useApi } from '@backstage/core-plugin-api';
 import { mtaApiRef } from '../../api/api';
-import { useFetchApplications } from '../../queries/mta';
+import {
+  useFetchApplications,
+  useSaveApplicationEntity,
+} from '../../queries/mta';
 import { Progress, ResponseErrorPanel } from '@backstage/core-components';
 
 type DenseApplicationTableProps = {
@@ -14,6 +17,7 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = ({
   entityID,
 }) => {
   const api = useApi(mtaApiRef);
+  const { mutate: saveApplicationEntity } = useSaveApplicationEntity();
 
   const {
     applications,
@@ -58,7 +62,7 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = ({
             tooltip: 'Connect Application to MTA Application',
             onClick: (event, rowData: any) => {
               const { mtaID } = rowData;
-              api.saveApplicationEntity(mtaID, entityID);
+              saveApplicationEntity({ applicationID: mtaID, entityID });
             },
           },
         ]}

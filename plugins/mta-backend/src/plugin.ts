@@ -11,9 +11,6 @@ import { createRouter } from './service/router';
 
 // eslint-disable-next-line @backstage/no-relative-monorepo-imports
 import { MTAProvider } from '../../catalog-backend-module-mta/src/provider/MTAEntityProvider';
-// import { MTAProvider } from '@internal/plugin-catalog-backend-module-mta/src/provider/MTAEntityProvider';
-// import { MTAProvider } from '@internal/plugin-catalog-backend-module-mta/src/provider/MTAEntityProvider';
-// import { MTAProvider } from '@internal/plugin-catalog-backend-module-mta/src/provider/MTAEntityProvider';
 
 import { catalogProcessingExtensionPoint } from '@backstage/plugin-catalog-node/alpha';
 import {

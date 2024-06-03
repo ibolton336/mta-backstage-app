@@ -26,12 +26,12 @@ export class MTAProvider implements EntityProvider {
     scheduler: SchedulerService,
   ): MTAProvider {
     const p = new MTAProvider(config, logger, scheduler);
-    // scheduler.scheduleTask({
-    //   frequency: { minutes: 10 },
-    //   timeout: { seconds: 30 },
-    //   id: 'sync-mta-catalog',
-    //   fn: p.run
-    // })
+    scheduler.scheduleTask({
+      frequency: { minutes: 1 },
+      timeout: { seconds: 30 },
+      id: 'sync-mta-catalog',
+      fn: p.run,
+    });
 
     return p;
   }
@@ -51,12 +51,12 @@ export class MTAProvider implements EntityProvider {
   async connect(connection: EntityProviderConnection): Promise<void> {
     this.logger.info('connecting');
     this.connection = connection;
-    // this.scheduler.scheduleTask({
-    //   frequency: { minutes: 10 },
-    //   timeout: { seconds: 30 },
-    //   id: 'sync-mta-catalog',
-    //   fn: run
-    // })
+    this.scheduler.scheduleTask({
+      frequency: { minutes: 10 },
+      timeout: { seconds: 30 },
+      id: 'sync-mta-catalog',
+      fn: this.run,
+    });
     await this.run();
   }
 
@@ -96,6 +96,7 @@ export class MTAProvider implements EntityProvider {
       baseURLAuth,
       baseURLHub,
     });
+
     this.logger.info({
       code_verifier,
       code_challenge,

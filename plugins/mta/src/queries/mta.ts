@@ -1,11 +1,13 @@
-import { useQuery, QueryFunction } from '@tanstack/react-query';
+import { useQuery, QueryFunction, useMutation } from '@tanstack/react-query';
 import { mtaApiRef, Application, MTAApi } from '../api/api';
 import { useApi } from '@backstage/core-plugin-api';
 
 export const useFetchApplication = (entityID?: any) => {
   const api = useApi(mtaApiRef);
 
-  const fetchApplication: QueryFunction<Application | URL> = async () => {
+  const fetchApplication: QueryFunction<
+    Application | URL | null
+  > = async () => {
     const result = await api.getApplication(entityID);
     if (result === undefined) {
       // Handle undefined case, throw an error or return a default value
@@ -15,13 +17,13 @@ export const useFetchApplication = (entityID?: any) => {
   };
 
   const { isLoading, error, data, isError } = useQuery<
-    Application | URL,
+    Application | URL | null,
     Error
   >({
     enabled: !!entityID,
     queryKey: [entityID],
     queryFn: fetchApplication,
-    select: (application: Application | URL) => {
+    select: (application: Application | URL | null) => {
       if (application instanceof URL) {
         // Here we need to redirect dminthem to login MTA.
         window.location.href = application.toString();
@@ -75,4 +77,35 @@ export const useFetchApplications = () => {
     fetchError: error,
     isError: isError,
   };
+};
+export const useSaveApplicationEntity = () => {
+  const api = useApi(mtaApiRef);
+
+  const saveApplicationEntity = async ({
+    applicationID,
+    entityID,
+  }: {
+    applicationID: string;
+    entityID: string;
+  }): Promise<Application | URL> => {
+    return await api.saveApplicationEntity(applicationID, entityID);
+  };
+
+  const mutation = useMutation<
+    Application | URL,
+    Error,
+    { applicationID: string; entityID: string }
+  >({
+    mutationFn: saveApplicationEntity,
+    onSuccess: data => {
+      if (data instanceof URL) {
+        window.location.href = data.toString(); // handle redirection
+      }
+    },
+    onError: error => {
+      console.error('Error during saving application entity:', error);
+    },
+  });
+
+  return mutation;
 };
