@@ -23,14 +23,12 @@ export const MTAApplicationManager = () => {
 
   return (
     <Grid container spacing={2}>
-      {/* Conditional rendering to display AppCard only if an entityID exists */}
       {entityID && (
         <Grid item xs={12} sm={6}>
           <AppCard entityID={entityID} />
         </Grid>
       )}
 
-      {/* DenseApplicationTable is always displayed */}
       <Grid item xs={12} sm={entityID ? 6 : 12}>
         <DenseApplicationTable entityID={entityID} />
       </Grid>

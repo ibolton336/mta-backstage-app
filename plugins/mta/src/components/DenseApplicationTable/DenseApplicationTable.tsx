@@ -21,6 +21,7 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = ({
 
   const {
     applications,
+    isURL,
     isFetching: isFetchingApps,
     fetchError: fetchErrorApps,
     isError: isErrorApps,
@@ -41,13 +42,14 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = ({
       />
     );
   }
-
-  const data = applications.map(application => ({
-    name: application.name,
-    description: application.description,
-    assessed: application.assessed,
-    mtaID: application.id,
-  }));
+  const data = isURL
+    ? []
+    : applications?.map(application => ({
+        name: application.name,
+        description: application.description,
+        assessed: application.assessed,
+        mtaID: application.id,
+      }));
 
   return (
     <InfoCard title="Link your Application to Component">

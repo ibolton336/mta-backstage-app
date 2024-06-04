@@ -24,12 +24,12 @@ export const useFetchApplication = (entityID?: any) => {
     queryKey: [entityID],
     queryFn: fetchApplication,
     select: (application: Application | URL | null) => {
-      if (application instanceof URL) {
-        // Here we need to redirect dminthem to login MTA.
-        window.location.href = application.toString();
-        // Optionally return a default or placeholder value if redirection is handled asynchronously
-        return application; // This would be a non-issue if you handle redirection synchronously
-      }
+      // if (application instanceof URL) {
+      //   // Here we need to redirect dminthem to login MTA.
+      //   window.location.href = application.toString();
+      //   // Optionally return a default or placeholder value if redirection is handled asynchronously
+      //   return application; // This would be a non-issue if you handle redirection synchronously
+      // }
       return application;
     },
   });
@@ -62,16 +62,15 @@ export const useFetchApplications = () => {
     queryFn: fetchApplications,
     select: (applications: Application[] | URL) => {
       if (applications instanceof URL) {
-        // Here we need to redirect dminthem to login MTA.
         window.location.href = applications.toString();
-        // Optionally return a default or placeholder value if redirection is handled asynchronously
-        return applications; // This would be a non-issue if you handle redirection synchronously
+        return applications;
       }
       return applications;
     },
   });
 
   return {
+    isURL: data instanceof URL,
     applications: data as Application[],
     isFetching: isLoading,
     fetchError: error,
