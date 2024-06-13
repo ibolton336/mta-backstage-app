@@ -10,7 +10,7 @@ import { SchedulerService } from '@backstage/backend-plugin-api';
 import { MTAComponentEntity } from './mtaComponentEntity';
 import { LocationSpec } from '@backstage/plugin-catalog-common';
 import { locationSpecToLocationEntity } from '@backstage/plugin-catalog-node';
-
+//
 /**
  * Provides entities from fictional frobs service.
  */
@@ -26,12 +26,12 @@ export class MTAProvider implements EntityProvider {
     scheduler: SchedulerService,
   ): MTAProvider {
     const p = new MTAProvider(config, logger, scheduler);
-    scheduler.scheduleTask({
-      frequency: { minutes: 1 },
-      timeout: { seconds: 30 },
-      id: 'sync-mta-catalog',
-      fn: p.run,
-    });
+    // scheduler.scheduleTask({
+    //   frequency: { seconds: 30 },
+    //   timeout: { seconds: 30 },
+    //   id: 'sync-mta-catalog',
+    //   fn: p.run,
+    // });
 
     return p;
   }
@@ -40,6 +40,7 @@ export class MTAProvider implements EntityProvider {
     this.config = config;
     this.logger = logger;
     this.scheduler = scheduler;
+    this.run = this.run.bind(this);
   }
 
   /** [2] */
@@ -52,7 +53,7 @@ export class MTAProvider implements EntityProvider {
     this.logger.info('connecting');
     this.connection = connection;
     this.scheduler.scheduleTask({
-      frequency: { minutes: 10 },
+      frequency: { seconds: 5 },
       timeout: { seconds: 30 },
       id: 'sync-mta-catalog',
       fn: this.run,
@@ -129,32 +130,44 @@ export class MTAProvider implements EntityProvider {
     }
 
     this.logger.info(`status: ${getResponse.status} json ${JSON.stringify(j)}`);
-    await this.connection.applyMutation({
-      type: 'full',
-      entities: j.map(application => {
-        const name = application.name.replace(/ /g, '-');
-        return {
-          locationKey: this.getProviderName(),
-          entity: {
-            apiVersion: 'backstage.io/v1alpha1',
-            kind: 'Component',
-            metadata: {
-              annotations: {
-                'backstage.io/managed-by-location': `url:${baseURLHub}/application/${application.id}`,
-                'backstage.io/managed-by-origin-location': `url:${baseURLHub}/application/${application.id}`,
+    await this.connection
+      .applyMutation({
+        type: 'full',
+        entities: j.map(application => {
+          const name = application.name.replace(/ /g, '-');
+          return {
+            key: application.id,
+            locationKey: this.getProviderName(),
+            entity: {
+              apiVersion: 'backstage.io/v1alpha1',
+              kind: 'Component',
+              metadata: {
+                annotations: {
+                  'backstage.io/managed-by-location': `url:${baseURLHub}/application/${application.id}`,
+                  'backstage.io/managed-by-origin-location': `url:${baseURLHub}/application/${application.id}`,
+                },
+                name: name,
+                id: application.id,
+                namespace: 'default',
               },
-              name: name,
-              id: application.id,
-              namespace: 'default',
+              spec: {
+                type: 'service',
+                lifecycle: 'experimental',
+                owner: 'unknown',
+              },
             },
-            spec: {
-              type: 'service',
-              lifecycle: 'experimental',
-              owner: 'unknown',
-            },
-          },
-        };
-      }),
-    });
+          };
+        }),
+      })
+      .then(() => {
+        console.log('REFRESHING');
+        this.logger.info('refreshing');
+        this.connection?.refresh({
+          keys: j.map(application => application.id),
+        });
+      })
+      .catch(e => {
+        this.logger.info(`error applying mutation ${e}`);
+      });
   }
 }

@@ -1,19 +1,26 @@
 import React from 'react';
-import { Grid, Typography } from '@material-ui/core';
+import { Grid, Typography, Button } from '@material-ui/core';
 import {
   Progress,
   ResponseErrorPanel,
   InfoCard,
 } from '@backstage/core-components';
-import { useFetchApplication } from '../../queries/mta';
+import {
+  useFetchApplication,
+  useSaveApplicationEntity,
+} from '../../queries/mta';
+import { useEntity } from '@backstage/plugin-catalog-react';
 
 type AppCardProps = {
   entityID: string;
 };
 
 export const AppCard = ({ entityID }: AppCardProps) => {
+  const entity = useEntity();
+  console.log('entity', entity);
   const { application, isFetching, fetchError, isError } =
     useFetchApplication(entityID);
+  const { mutate: saveApplicationEntity } = useSaveApplicationEntity();
 
   if (isFetching) {
     return <Progress />;
@@ -28,16 +35,6 @@ export const AppCard = ({ entityID }: AppCardProps) => {
     );
   }
 
-  //   if (!application) {
-  //     return (
-  //       <ResponseErrorPanel
-  //         title="Unable to find application"
-  //         error={new Error('Application data is missing')}
-  //       />
-  //     );
-  //   }
-
-  // Handle null (no application found) distinctly from errors
   if (!application) {
     return (
       <Grid item xs={12} md={6}>
@@ -45,14 +42,31 @@ export const AppCard = ({ entityID }: AppCardProps) => {
           <Typography variant="body1">
             No application data available for this ID.
           </Typography>
+          {entity && entity.entity.metadata.id && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() =>
+                saveApplicationEntity({
+                  applicationID: entity.entity.metadata.id as string,
+                  entityID: entityID,
+                })
+              }
+              style={{ marginTop: 16 }}
+            >
+              Create New Application
+            </Button>
+          )}
         </InfoCard>
       </Grid>
     );
   }
 
   return (
-    <Grid item>
-      <InfoCard title={application.name} />
+    <Grid item xs={12}>
+      <InfoCard title={`Application: ${application.name}`}>
+        {/* Other information can be displayed here */}
+      </InfoCard>
     </Grid>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid } from '@material-ui/core';
+import { Grid, Tab, Tabs, Box, Typography } from '@material-ui/core';
 import { ResponseErrorPanel } from '@backstage/core-components';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { DenseApplicationTable } from '../DenseApplicationTable/DenseApplicationTable';
@@ -7,8 +7,12 @@ import { AppCard } from '../AppCard/AppCard';
 
 export const MTAApplicationManager = () => {
   const entity = useEntity();
-
   const entityID = entity.entity.metadata.uid ?? '';
+  const [tab, setTab] = React.useState(0);
+
+  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+    setTab(newValue);
+  };
 
   if (!entity) {
     return (
@@ -22,16 +26,33 @@ export const MTAApplicationManager = () => {
   }
 
   return (
-    <Grid container spacing={2}>
-      {entityID && (
-        <Grid item xs={12} sm={6}>
-          <AppCard entityID={entityID} />
-        </Grid>
-      )}
+    <Box sx={{ width: '100%' }}>
+      {/* Display the application name and some details */}
+      <Typography variant="h5" gutterBottom>
+        Application Name: {entity.entity.metadata.name}
+      </Typography>
+      <Typography variant="body1" gutterBottom>
+        Unique ID: {entity.entity.metadata.uid}
+      </Typography>
 
-      <Grid item xs={12} sm={entityID ? 6 : 12}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', marginBottom: 10 }}>
+        <Tabs
+          value={tab}
+          onChange={handleTabChange}
+          aria-label="Application tabs"
+        >
+          <Tab label="Application" />
+          <Tab label="Link Application" />
+        </Tabs>
+      </Box>
+
+      {/* Conditional rendering of tab panels */}
+      <Grid item xs={12} role="tabpanel" hidden={tab !== 0} id={`tabpanel-0`}>
+        <AppCard entityID={entityID} />
+      </Grid>
+      <Grid item xs={12} role="tabpanel" hidden={tab !== 1} id={`tabpanel-1`}>
         <DenseApplicationTable entityID={entityID} />
       </Grid>
-    </Grid>
+    </Box>
   );
 };

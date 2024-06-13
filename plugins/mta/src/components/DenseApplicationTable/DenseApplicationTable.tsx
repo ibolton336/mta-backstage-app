@@ -1,9 +1,11 @@
 import React from 'react';
 import { InfoCard, Table, TableColumn } from '@backstage/core-components';
 import AddLinkIcon from '@mui/icons-material/AddLink';
+import { Button } from '@material-ui/core';
 import { useApi } from '@backstage/core-plugin-api';
 import { mtaApiRef } from '../../api/api';
 import {
+  useFetchApplication,
   useFetchApplications,
   useSaveApplicationEntity,
 } from '../../queries/mta';
@@ -16,7 +18,6 @@ type DenseApplicationTableProps = {
 export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = ({
   entityID,
 }) => {
-  const api = useApi(mtaApiRef);
   const { mutate: saveApplicationEntity } = useSaveApplicationEntity();
 
   const {
@@ -27,13 +28,46 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = ({
     isError: isErrorApps,
   } = useFetchApplications();
 
+  const {
+    application: applicationEntity,
+    isFetching: isFetchingApp,
+    fetchError: fetchErrorApp,
+    isError: isErrorApp,
+  } = useFetchApplication(entityID);
+
   const columns: TableColumn[] = [
     { title: 'Name', field: 'name' },
     { title: 'Description', field: 'description' },
     { title: 'Assessed', field: 'assessed' },
     { title: 'mtaID', field: 'mtaID', hidden: true },
+    {
+      title: '',
+      field: 'actions',
+      render: (rowData: any) => {
+        return rowData.mtaID === applicationEntity?.id ? (
+          'Linked'
+        ) : (
+          <div>
+            <Button
+              // onClick={saveApplicationEntity({
+              //   applicationID: rowData.mtaID,
+              //   entityID,
+              // })}
+              onClick={() =>
+                saveApplicationEntity({
+                  applicationID: rowData.mtaID,
+                  entityID,
+                })
+              }
+            >
+              <AddLinkIcon />
+            </Button>
+          </div>
+        );
+      },
+    },
   ];
-  if (isFetchingApps) return <Progress />;
+  if (isFetchingApps || isFetchingApp) return <Progress />;
   if (isErrorApps && fetchErrorApps) {
     return (
       <ResponseErrorPanel
@@ -58,16 +92,16 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = ({
         options={{ search: false, paging: true }}
         columns={columns}
         data={data}
-        actions={[
-          {
-            icon: () => <AddLinkIcon />,
-            tooltip: 'Connect Application to MTA Application',
-            onClick: (event, rowData: any) => {
-              const { mtaID } = rowData;
-              saveApplicationEntity({ applicationID: mtaID, entityID });
-            },
-          },
-        ]}
+        // actions={[
+        //   {
+        //     icon: (rowData: any) => <AddLinkIcon />,
+        //     tooltip: 'Connect Application to MTA Application',
+        //     onClick: (event, rowData: any) => {
+        //       const { mtaID } = rowData;
+        //       saveApplicationEntity({ applicationID: mtaID, entityID });
+        //     },
+        //   },
+        // ]}
       />
     </InfoCard>
   );
