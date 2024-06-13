@@ -2,6 +2,11 @@ import { useQuery, QueryFunction, useMutation } from '@tanstack/react-query';
 import { mtaApiRef, Application, MTAApi } from '../api/api';
 import { useApi } from '@backstage/core-plugin-api';
 
+interface MTAEntity {
+  entityUID: string;
+  mtaApplication: number | string;
+}
+
 export const useFetchApplication = (entityID?: any) => {
   const api = useApi(mtaApiRef);
 
@@ -107,4 +112,31 @@ export const useSaveApplicationEntity = () => {
   });
 
   return mutation;
+};
+
+export const useFetchAllEntities = () => {
+  const api = useApi(mtaApiRef);
+
+  const fetchAllEntities: QueryFunction<any[]> = async () => {
+    const result = await api.getAllEntities();
+    if (!result) {
+      // Handle undefined or empty case, throw an error or return a default value
+      throw new Error('No entities found');
+    }
+    return result;
+  };
+  const { isLoading, error, data, isError } = useQuery<MTAEntity[], Error>({
+    queryKey: ['entities'],
+    queryFn: fetchAllEntities,
+    select: (entities: any[]) => {
+      return entities;
+    },
+  });
+
+  return {
+    entities: data,
+    isFetching: isLoading,
+    fetchError: error,
+    isError: isError,
+  };
 };

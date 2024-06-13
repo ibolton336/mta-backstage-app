@@ -42,10 +42,12 @@ backend:
 
 mta:
   # url: https://mta-openshift-mta.apps.shurley-virt.rep1.p1.openshiftapps.com
-  url: https://mta-openshift-mta.ibolton-dev-cluster-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
+  # url: https://mta-openshift-mta.ibolton-dev-cluster-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
+  url: https://mta-openshift-mta.mycluster-wdc04-b3c-4x16-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
   providerAuth:
     realm: mta
-    secret: naZhPrAmJGeDSdrKzjGjcOlnhV4hf7FQ
+    # secret: naZhPrAmJGeDSdrKzjGjcOlnhV4hf7FQ
+    secret: aUUAhtQs4bodcIbXylAxHkf0WxuA9ufu
     clientID: backstage-provider
   # visibility: frontend
 
@@ -61,7 +63,9 @@ integrations:
     #   token: ${GHE_TOKEN}
 proxy:
   '/mta-proxy':
-    target: 'https://mta-openshift-mta.ibolton-dev-cluster-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud'
+    # target: 'https://mta-openshift-mta.ibolton-dev-cluster-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud'
+    # target: 'https://mta-openshift-mta.ibolton-dev-cluster-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud'
+    target: 'https://mta-openshift-mta.mycluster-wdc04-b3c-4x16-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud'
     changeOrigin: true
     secure: true
     headers:

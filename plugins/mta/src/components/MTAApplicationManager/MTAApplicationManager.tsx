@@ -51,7 +51,7 @@ export const MTAApplicationManager = () => {
         <AppCard entityID={entityID} />
       </Grid>
       <Grid item xs={12} role="tabpanel" hidden={tab !== 1} id={`tabpanel-1`}>
-        <DenseApplicationTable entityID={entityID} />
+        <DenseApplicationTable />
       </Grid>
     </Box>
   );

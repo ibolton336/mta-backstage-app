@@ -10,6 +10,7 @@ const migrationsDir = resolvePackagePath(
 );
 
 export interface EntityApplicationStorage {
+  getAllEntities(): Promise<any[]>;
   getApplicationIDForEntity(entityUID: string): Promise<Number | undefined>;
   saveApplicationIDForEntity(
     entityID: string,
@@ -40,6 +41,10 @@ export class DataBaseEntityApplicationStorage
     });
 
     return new DataBaseEntityApplicationStorage(knex, logger);
+  }
+
+  async getAllEntities(): Promise<any[]> {
+    return this.knex.table(ENTITY_APPLICATION_TABLE).select('*');
   }
 
   async getApplicationIDForEntity(
