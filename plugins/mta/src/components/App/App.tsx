@@ -9,6 +9,7 @@ import {
 } from '@backstage/core-components';
 import { MTAApplicationManager } from '../MTAApplicationManager/MTAApplicationManager';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const queryClient = new QueryClient();
 export const App = () => (
@@ -25,5 +26,6 @@ export const App = () => (
         </Grid>
       </Content>
     </Page>
+    <ReactQueryDevtools initialIsOpen={false} />
   </QueryClientProvider>
 );

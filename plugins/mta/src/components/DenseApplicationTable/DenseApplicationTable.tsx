@@ -12,6 +12,7 @@ import {
   useSaveApplicationEntity,
 } from '../../queries/mta';
 import { Progress, ResponseErrorPanel } from '@backstage/core-components';
+import { InvalidateQueryFilters, useQueryClient } from '@tanstack/react-query';
 
 type DenseApplicationTableProps = {
   // entityID: string;
@@ -22,7 +23,8 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = (
     // entityID,
   },
 ) => {
-  const { mutate: saveApplicationEntity } = useSaveApplicationEntity();
+  const queryClient = useQueryClient();
+
   const entity = useEntity();
   const entityID = entity.entity.metadata.uid ?? '';
 
@@ -47,10 +49,20 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = (
     isError: isErrorAllEntities,
   } = useFetchAllEntities();
 
+  const { mutate: saveApplicationEntity } = useSaveApplicationEntity({
+    onSuccess: () => {
+      const filters: InvalidateQueryFilters = {
+        queryKey: ['entities'],
+      };
+      queryClient.invalidateQueries(filters);
+    },
+  });
+
   const columns: TableColumn[] = [
     { title: 'Name', field: 'name' },
     { title: 'Description', field: 'description' },
     { title: 'Assessed', field: 'assessed' },
+
     { title: 'mtaID', field: 'mtaID', hidden: true },
     {
       title: '',

@@ -82,7 +82,15 @@ export const useFetchApplications = () => {
     isError: isError,
   };
 };
-export const useSaveApplicationEntity = () => {
+
+type UseSaveApplicationEntityOptions = {
+  onSuccess?: () => void;
+};
+
+export const useSaveApplicationEntity = (
+  options?: UseSaveApplicationEntityOptions,
+) => {
+  const { onSuccess } = options ?? {};
   const api = useApi(mtaApiRef);
 
   const saveApplicationEntity = async ({
@@ -105,6 +113,7 @@ export const useSaveApplicationEntity = () => {
       if (data instanceof URL) {
         window.location.href = data.toString(); // handle redirection
       }
+      if (onSuccess) onSuccess();
     },
     onError: error => {
       console.error('Error during saving application entity:', error);

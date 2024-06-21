@@ -17,19 +17,31 @@ import {
   useSaveApplicationEntity,
 } from '../../queries/mta';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { Application } from '../../api/api';
 import ApplicationDetails from './ApplicationDetails';
+import { InvalidateQueryFilters, useQueryClient } from '@tanstack/react-query';
 
 type AppCardProps = {
   entityID: string;
 };
 
 export const AppCard = ({ entityID }: AppCardProps) => {
+  const queryClient = useQueryClient();
+
   const entity = useEntity();
   console.log('entity', entity);
+
   const { application, isFetching, fetchError, isError } =
     useFetchApplication(entityID);
-  const { mutate: saveApplicationEntity } = useSaveApplicationEntity();
+
+  // const { mutate: saveApplicationEntity } = useSaveApplicationEntity();
+  const { mutate: saveApplicationEntity } = useSaveApplicationEntity({
+    onSuccess: () => {
+      const filters: InvalidateQueryFilters = {
+        queryKey: [entityID],
+      };
+      queryClient.invalidateQueries(filters);
+    },
+  });
 
   if (isFetching) {
     return <Progress />;
