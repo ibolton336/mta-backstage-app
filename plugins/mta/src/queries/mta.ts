@@ -2,6 +2,11 @@ import { useQuery, QueryFunction, useMutation } from '@tanstack/react-query';
 import { mtaApiRef, Application, MTAApi } from '../api/api';
 import { useApi } from '@backstage/core-plugin-api';
 
+interface MTAEntity {
+  entityUID: string;
+  mtaApplication: number | string;
+}
+
 export const useFetchApplication = (entityID?: any) => {
   const api = useApi(mtaApiRef);
 
@@ -24,12 +29,12 @@ export const useFetchApplication = (entityID?: any) => {
     queryKey: [entityID],
     queryFn: fetchApplication,
     select: (application: Application | URL | null) => {
-      if (application instanceof URL) {
-        // Here we need to redirect dminthem to login MTA.
-        window.location.href = application.toString();
-        // Optionally return a default or placeholder value if redirection is handled asynchronously
-        return application; // This would be a non-issue if you handle redirection synchronously
-      }
+      // if (application instanceof URL) {
+      //   // Here we need to redirect dminthem to login MTA.
+      //   window.location.href = application.toString();
+      //   // Optionally return a default or placeholder value if redirection is handled asynchronously
+      //   return application; // This would be a non-issue if you handle redirection synchronously
+      // }
       return application;
     },
   });
@@ -62,23 +67,30 @@ export const useFetchApplications = () => {
     queryFn: fetchApplications,
     select: (applications: Application[] | URL) => {
       if (applications instanceof URL) {
-        // Here we need to redirect dminthem to login MTA.
         window.location.href = applications.toString();
-        // Optionally return a default or placeholder value if redirection is handled asynchronously
-        return applications; // This would be a non-issue if you handle redirection synchronously
+        return applications;
       }
       return applications;
     },
   });
 
   return {
+    isURL: data instanceof URL,
     applications: data as Application[],
     isFetching: isLoading,
     fetchError: error,
     isError: isError,
   };
 };
-export const useSaveApplicationEntity = () => {
+
+type UseSaveApplicationEntityOptions = {
+  onSuccess?: () => void;
+};
+
+export const useSaveApplicationEntity = (
+  options?: UseSaveApplicationEntityOptions,
+) => {
+  const { onSuccess } = options ?? {};
   const api = useApi(mtaApiRef);
 
   const saveApplicationEntity = async ({
@@ -101,6 +113,7 @@ export const useSaveApplicationEntity = () => {
       if (data instanceof URL) {
         window.location.href = data.toString(); // handle redirection
       }
+      if (onSuccess) onSuccess();
     },
     onError: error => {
       console.error('Error during saving application entity:', error);
@@ -108,4 +121,31 @@ export const useSaveApplicationEntity = () => {
   });
 
   return mutation;
+};
+
+export const useFetchAllEntities = () => {
+  const api = useApi(mtaApiRef);
+
+  const fetchAllEntities: QueryFunction<any[]> = async () => {
+    const result = await api.getAllEntities();
+    if (!result) {
+      // Handle undefined or empty case, throw an error or return a default value
+      throw new Error('No entities found');
+    }
+    return result;
+  };
+  const { isLoading, error, data, isError } = useQuery<MTAEntity[], Error>({
+    queryKey: ['entities'],
+    queryFn: fetchAllEntities,
+    select: (entities: any[]) => {
+      return entities;
+    },
+  });
+
+  return {
+    entities: data,
+    isFetching: isLoading,
+    fetchError: error,
+    isError: isError,
+  };
 };

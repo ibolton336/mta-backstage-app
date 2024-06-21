@@ -246,6 +246,7 @@ export async function createRouter(
       await entityApplicationStorage.getApplicationIDForEntity(
         request.params.id,
       );
+    // const entities = await entityApplicationStorage.getAllEntities();
     if (!applicatonID) {
       response.status(404);
       response.json({ message: 'no application mapped' });
@@ -271,6 +272,25 @@ export async function createRouter(
     }
     const j = await (await getResponse).json();
     response.json(j);
+  });
+
+  router.get('/entities', async (request, response) => {
+    try {
+      const entities = await entityApplicationStorage.getAllEntities();
+
+      if (entities.length === 0) {
+        response.status(404).json({ message: 'No entities found' });
+        return;
+      }
+
+      logger.info(`Retrieved all entities: ${entities.length} entries found.`);
+
+      response.json(entities);
+    } catch (error) {
+      logger.error('Failed to fetch entities:', error);
+
+      response.status(500).json({ error: 'Failed to fetch entities' });
+    }
   });
 
   router.post('/application/entity', async (request, response) => {
