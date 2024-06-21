@@ -23,6 +23,14 @@ export type Application = {
   assessed: boolean;
   owner?: Ref;
   tags?: Tags[];
+  effort?: number;
+  risk?: number;
+  comments?: string;
+  binary?: string;
+  bucket?: {
+    id: string;
+    name: string;
+  };
 };
 export interface MTAApi {
   getApplications(): Promise<Application[] | URL>;
