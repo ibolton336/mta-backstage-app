@@ -46,40 +46,171 @@ export async function analyzeMTAApplicatonsAction(opts) {
       },
     },
     async handler(ctx) {
-      console.log('Received input:', ctx.input); // Log the received inputs
+      // const createTaskGroupURL = `${baseURLHub}/task-groups`;
 
-      ctx.logger.info(
-        `Running example template with parameters: ${ctx.input.selectedApp} -- ${ctx.input}`,
-      );
-      const fetchURL = `${baseURLHub}/applications`;
-      const authHeader = `Bearer ${tokenSet.access_token}`;
+      const TASKGROUPS = `${baseURLHub}/taskgroups`;
+      // Step 1: Create a task group
 
-      const getResponse = await fetch(fetchURL, {
-        credentials: 'include',
-        headers: {
-          Accept: 'application/json, text/plain, */*',
-          Authorization: authHeader,
-          'Content-Type': 'application/json',
+      const defaultTaskData: TaskData = {
+        tagger: {
+          enabled: true,
         },
-        method: 'POST',
-        body: JSON.stringify({ name: ctx.input.selectedApp }),
-      });
-      if (getResponse.status != 200) {
-        ctx.logger.info(
-          'unable to call hub ' +
-            getResponse.status +
-            ' message ' +
-            JSON.stringify(getResponse.text()),
-        );
-        return;
-      }
-      const j = await getResponse.json();
-      if (!Array.isArray(j)) {
-        ctx.logger.info('expecting array of applications');
-        return;
-      }
+        verbosity: 0,
+        mode: {
+          binary: false,
+          withDeps: false,
+          artifact: '',
+        },
+        targets: [],
+        sources: [],
+        scope: {
+          withKnownLibs: false,
+          packages: {
+            included: [],
+            excluded: [],
+          },
+        },
+      };
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const defaultTaskgroup = {
+        name: `taskgroup.analyzer`,
+        data: {
+          ...defaultTaskData,
+        },
+        tasks: [],
+      };
+
+      const createTaskgroup = async (obj: Taskgroup) => {
+        const response = await fetch(TASKGROUPS, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${tokenSet.access_token}`,
+          },
+          body: JSON.stringify(obj),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          logger.info(
+            `Unable to call hub, status: ${response.status}, message: ${errorText}`,
+          );
+          throw new Error(
+            `HTTP error! status: ${response.status}, body: ${errorText}`,
+          );
+        }
+        return await response.json();
+      };
+
+      const submitTaskgroup = async (obj: Taskgroup) => {
+        const response = await fetch(`${TASKGROUPS}/${obj.id}/submit`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${tokenSet.access_token}`,
+          },
+          body: JSON.stringify(obj),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          logger.info(
+            `Unable to call hub, status: ${response.status}, message: ${errorText}`,
+          );
+          throw new Error(
+            `HTTP error! status: ${response.status}, body: ${errorText}`,
+          );
+        }
+        // Return the status code to indicate success or no content
+        logger.info(`Operation successful, status code: ${response.status}`);
+        return {
+          status: response.status,
+          message: 'Submission successful',
+        };
+      };
+      try {
+        const taskgroupResponse = await createTaskgroup(defaultTaskgroup);
+        taskgroupResponse.data.mode = {
+          binary: false,
+          withDeps: true,
+          artifact: '',
+        };
+        taskgroupResponse.data.rules = {
+          labels: {
+            excluded: [],
+            included: [
+              'konveyor.io/target=eap8',
+              'konveyor.io/target=cloud-readiness',
+              'konveyor.io/target=quarkus',
+            ],
+          },
+        };
+
+        const response = await submitTaskgroup(taskgroupResponse);
+        logger.info(`Taskgroup submitted: ${response.id}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        logger.info(`Error: ${error}`);
+      }
     },
   });
+}
+export interface Taskgroup {
+  id?: number;
+  name: string;
+  kind?: string;
+  addon?: string;
+  data: TaskData;
+  tasks: TaskgroupTask[];
+}
+export interface TaskData {
+  tagger: {
+    enabled: boolean;
+  };
+  verbosity: number;
+  mode: {
+    binary: boolean;
+    withDeps: boolean;
+    artifact: string;
+    csv?: boolean;
+  };
+  targets?: string[];
+  sources?: string[];
+  scope: {
+    withKnownLibs: boolean;
+    packages: {
+      included: string[];
+      excluded: string[];
+    };
+  };
+  rules?: {
+    path: string;
+    tags: {
+      excluded: string[];
+    };
+    repository?: Repository;
+    identity?: Ref;
+    labels: {
+      included: string[];
+      excluded: string[];
+    };
+  };
+}
+
+export interface TaskgroupTask {
+  name: string;
+  data: any;
+  application: Ref;
+}
+
+export interface Ref {
+  id: number;
+  name: string;
+}
+
+export interface Repository {
+  kind?: string;
+  branch?: string;
+  path?: string;
+  url?: string;
 }
