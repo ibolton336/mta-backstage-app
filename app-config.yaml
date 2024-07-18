@@ -117,22 +117,31 @@ catalog:
     - type: file
       target: ../../examples/entities.yaml
 
-    # Local example template
-    - type: file
-      target: ./plugins/test-template.yaml
-      rules:
-        - allow: [Template]
+    # # Local example template
+    # - type: file
+    #   target: ./plugins/test-template.yaml
+    #   rules:
+    #     - allow: [Template]
 
     - type: file
       target: ../../examples/template/ian-template-test.yaml
       rules:
         - allow: [Template]
-
-    # Local example organizational data
     - type: file
-      target: ../../examples/org.yaml
+      target: ../../examples/template/analysis-template-test.yaml
       rules:
-        - allow: [User, Group]
+        - allow: [Template]
+
+    # - type: file
+    #   target: ../../examples/template/analysis-template-test.yaml
+    #   rules:
+    #     - allow: [Template]
+
+    # # Local example organizational data
+    # - type: file
+    #   target: ../../examples/org.yaml
+    #   rules:
+    #     - allow: [User, Group]
 
     ## Uncomment these lines to add more example data
     # - type: url

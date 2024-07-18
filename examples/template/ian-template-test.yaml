@@ -4,7 +4,7 @@ kind: Template
 # some metadata about the template itself
 metadata:
   name: v1beta3-demo
-  title: Onboard Application
+  title: Onboard Application to MTA
   description: scaffolder v1beta3 template demo
 spec:
   owner: mta
