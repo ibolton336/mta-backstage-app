@@ -4,7 +4,7 @@ kind: Template
 # some metadata about the template itself
 metadata:
   name: v1beta3-demo
-  title: Onboard Applicatoin
+  title: Onboard Application to MTA
   description: scaffolder v1beta3 template demo
 spec:
   owner: mta
@@ -18,7 +18,7 @@ spec:
         name:
           title: Name
           type: string
-          description: Unique name of the component
+          description: Unique name of the application
           ui:autofocus: true
     - title: Choose a location
       properties:

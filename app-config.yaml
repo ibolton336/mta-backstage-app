@@ -117,19 +117,35 @@ catalog:
     - type: file
       target: ../../examples/entities.yaml
 
-    # Local example template
+    # # Local example template
+    # - type: file
+    #   target: ./plugins/test-template.yaml
+    #   rules:
+    #     - allow: [Template]
+
     - type: file
-      target: ../../examples/template/template.yaml
+      target: ../../examples/template/ian-template-test.yaml
+      rules:
+        - allow: [Template]
+    - type: file
+      target: ../../examples/template/analysis-template-test.yaml
       rules:
         - allow: [Template]
 
-    # Local example organizational data
-    - type: file
-      target: ../../examples/org.yaml
-      rules:
-        - allow: [User, Group]
+    # - type: file
+    #   target: ../../examples/template/analysis-template-test.yaml
+    #   rules:
+    #     - allow: [Template]
+
+    # # Local example organizational data
+    # - type: file
+    #   target: ../../examples/org.yaml
+    #   rules:
+    #     - allow: [User, Group]
 
     ## Uncomment these lines to add more example data
+    # - type: url
+    #   target: file:///Users/ibolton/Projects/backstage/backstage/packages/catalog-model/examples/
     # - type: url
     #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
 
