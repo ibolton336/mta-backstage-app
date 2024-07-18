@@ -1,8 +1,21 @@
 import { createTemplateAction } from '@backstage/plugin-scaffolder-node';
 import { Issuer, generators } from 'openid-client';
+import { CatalogClient } from '@backstage/catalog-client';
 
 export async function analyzeMTAApplicatonsAction(opts) {
-  const { config, logger } = opts;
+  const { config, logger, discovery } = opts;
+  console.log('opts', opts, discovery);
+
+  const catalogClient = new CatalogClient({
+    discoveryApi: discovery,
+  });
+  const catalogUrl = await discovery.getBaseUrl('catalog');
+  console.log(`Catalog service URL: ${catalogUrl}`);
+  const entities = await catalogClient.getEntities({
+    filter: { kind: 'Component' },
+  });
+  console.log('Fetched entities:', entities);
+
   const baseUrl = config.getString('mta.url');
   const baseURLHub = `${baseUrl}/hub`;
   const realm = config.getString('mta.providerAuth.realm');
@@ -46,6 +59,7 @@ export async function analyzeMTAApplicatonsAction(opts) {
       },
     },
     async handler(ctx) {
+      console.log('input', ctx.input);
       // const createTaskGroupURL = `${baseURLHub}/task-groups`;
 
       const TASKGROUPS = `${baseURLHub}/taskgroups`;
@@ -129,7 +143,53 @@ export async function analyzeMTAApplicatonsAction(opts) {
         };
       };
       try {
+        // const initTask = (application: Application): TaskgroupTask => {
+        //   return {
+        //     name: `${application.name}.${application.id}.windup`,
+        //     data: {},
+        //     application: { id: application.id as number, name: application.name },
+        //   };
+        // };
+        const [kindNamespace, name] = ctx.input.selectedApp.split('/');
+
+        const [kind, namespace] = kindNamespace.split(':');
+
+        // const entities = await catalogClient.getEntities({
+        //   filter: { kind: 'Component', 'metadata.name': ctx.input.selectedApp },
+        // });
+        // console.log('entities', entities);j
+        // const entity = entities.items[0];
+        // console.log('entity', entity);
+        console.log('app entity', kind, namespace, name);
+        const entities = await catalogClient.getEntities({
+          filter: {
+            kind: kind,
+            'metadata.namespace': namespace,
+            'metadata.name': name,
+          },
+        });
+        console.log('found entities', entities);
+
+        // Check if entities were found
+        if (entities.items.length === 0) {
+          ctx.logger.error(`No entities found for ${ctx.input.selectedApp}`);
+          return;
+        }
+
+        // Assume there's only one matching entity
+        const matchingEntity = entities.items[0];
+
         const taskgroupResponse = await createTaskgroup(defaultTaskgroup);
+        taskgroupResponse.tasks = [
+          {
+            name: `taskgroup.analyzer.${matchingEntity.metadata.name}`,
+            data: {},
+            application: {
+              id: matchingEntity.metadata.id as number,
+              name: matchingEntity.metadata.name,
+            },
+          },
+        ];
         taskgroupResponse.data.mode = {
           binary: false,
           withDeps: true,
@@ -145,7 +205,7 @@ export async function analyzeMTAApplicatonsAction(opts) {
             ],
           },
         };
-
+        console.log('submitted taskgroup', taskgroupResponse);
         const response = await submitTaskgroup(taskgroupResponse);
         logger.info(`Taskgroup submitted: ${response.id}`);
         await new Promise(resolve => setTimeout(resolve, 1000));
