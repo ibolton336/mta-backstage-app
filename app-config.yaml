@@ -47,7 +47,7 @@ mta:
   providerAuth:
     realm: mta
     # secret: naZhPrAmJGeDSdrKzjGjcOlnhV4hf7FQ
-    secret: aUUAhtQs4bodcIbXylAxHkf0WxuA9ufu
+    secret: backstage-provider-secret
     clientID: backstage-provider
   # visibility: frontend
 
