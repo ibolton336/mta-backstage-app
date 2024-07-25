@@ -43,9 +43,13 @@ backend:
 mta:
   # url: https://mta-openshift-mta.apps.shurley-virt.rep1.p1.openshiftapps.com
   # url: https://mta-openshift-mta.ibolton-dev-cluster-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
-  url: https://mta-openshift-mta.mycluster-wdc04-b3c-4x16-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
+  # url: https://mta-openshift-mta.mycluster-wdc04-b3c-4x16-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
+  # url: https://tackle-konveyor-tackle.mycluster-wdc04-b3c-4x16-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
+  # url: https://tackle-konveyor-tackle.ibolton-rhdh-testing-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
+  url: https://tackle-konveyor-tackle.ibolton-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud
   providerAuth:
-    realm: mta
+    # realm: mta
+    realm: tackle 
     # secret: naZhPrAmJGeDSdrKzjGjcOlnhV4hf7FQ
     secret: backstage-provider-secret
     clientID: backstage-provider
@@ -124,11 +128,11 @@ catalog:
     #     - allow: [Template]
 
     - type: file
-      target: ../../examples/template/ian-template-test.yaml
+      target: ../../examples/template/create-application-template.yaml
       rules:
         - allow: [Template]
     - type: file
-      target: ../../examples/template/analysis-template-test.yaml
+      target: ../../examples/template/run-analysis-template.yaml
       rules:
         - allow: [Template]
 

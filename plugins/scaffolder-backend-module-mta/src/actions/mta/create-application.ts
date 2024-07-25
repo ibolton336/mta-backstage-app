@@ -1,94 +1,118 @@
 import { createTemplateAction } from '@backstage/plugin-scaffolder-node';
-import {
-  coreServices,
-} from '@backstage/backend-plugin-api';
+import { coreServices } from '@backstage/backend-plugin-api';
 import { Issuer, generators } from 'openid-client';
 
 /**
  * Creates an `acme:example` Scaffolder action.
  *
  * @remarks
- *
  * See {@link https://example.com} for more information.
- *
  * @public
  */
 export async function createMTAApplicatonAction(opts) {
-  const {config, logger} = opts
-  // For more information on how to define custom actions, see
-  //   https://backstage.io/docs/features/software-templates/writing-custom-actions
-    const baseUrl = config.getString('mta.url');
-    const baseURLHub = baseUrl + "/hub"
-    const realm = config.getString('mta.providerAuth.realm')
-    const clientID = config.getString('mta.providerAuth.clientID')
-    const secret = config.getString('mta.providerAuth.secret')
-    const baseURLAuth = baseUrl+"/auth/realms/"+realm
-    const mtaAuthIssuer = await Issuer.discover(baseURLAuth);
-    const authClient = new mtaAuthIssuer.Client({
-        client_id: clientID,
-        client_secret: secret,
-        response_types: ['code'],
-    })
-    const code_verifier = generators.codeVerifier();
-    const code_challenge = generators.codeChallenge(code_verifier);
+  const { config, logger } = opts;
+  const baseUrl = config.getString('mta.url');
+  const baseURLHub = baseUrl + '/hub';
+  const realm = config.getString('mta.providerAuth.realm');
+  const clientID = config.getString('mta.providerAuth.clientID');
+  const secret = config.getString('mta.providerAuth.secret');
+  const baseURLAuth = baseUrl + '/auth/realms/' + realm;
 
-    const tokenSet = await authClient.grant({
-        grant_type: "client_credentials"
-    });
-    if (!tokenSet.access_token) {
-      logger.info("unable to access hub")
-    }
+  const mtaAuthIssuer = await Issuer.discover(baseURLAuth);
+  const authClient = new mtaAuthIssuer.Client({
+    client_id: clientID,
+    client_secret: secret,
+    response_types: ['code'],
+  });
+
+  const tokenSet = await authClient.grant({
+    grant_type: 'client_credentials',
+  });
+  if (!tokenSet.access_token) {
+    logger.error('Failed to obtain access token from auth server.');
+    throw new Error('Unable to access hub due to authentication failure.');
+  }
 
   return createTemplateAction<{
     name: string;
-    repo: string;
+    url: string;
+    branch: string;
+    rootPath: string;
   }>({
     id: 'mta:createApplication',
-    description: 'create applicaton in MTA',
+    description: 'Create application in MTA',
     schema: {
       input: {
         type: 'object',
-        required: ['name'],
+        required: ['name', 'url', 'branch', 'rootPath'],
         properties: {
           name: {
             title: 'Name of the application',
-            description: 'Name will be the display name in MTA appliation, will be the name seen in the catalog',
+            description:
+              'Name will be the display name in MTA application, seen in the catalog',
             type: 'string',
           },
-          repo: {
-            title: 'Repository',
+          url: {
+            title: 'Repository URL',
             description: 'URL to the repository',
+            type: 'string',
+          },
+          branch: {
+            title: 'Branch',
+            description: 'Branch to use',
+            type: 'string',
+          },
+          rootPath: {
+            title: 'Root Path',
+            description: 'Root Path to use',
             type: 'string',
           },
         },
       },
     },
     async handler(ctx) {
-      ctx.logger.info(
-        `Running example template with parameters: ${ctx.input.name} -- ${ctx.input.repo}`,
+      const { name, url, branch, rootPath } = ctx.input;
+      logger.info(
+        `Creating application with: ${name}, ${url}, ${branch}, ${rootPath}`,
       );
 
-      const getResponse = await fetch(baseURLHub+"/applications", {
-        "credentials": "include",
-        "headers": {
-          "Accept": "application/json, text/plain, */*",
-          "Authorization": "Bearer " + tokenSet.access_token, 
-          "Content-Type": "application/json",
-        },
-        "method": "POST",
-        "body": JSON.stringify({"name": ctx.input.name})
-      })
-      if (getResponse.status != 200) {
-        ctx.logger.info("unable to call hub " + getResponse.status + " message " + JSON.stringify(getResponse.text()))
-          return
-      }
-      const j = await getResponse.json()
-      if (!Array.isArray(j)) {
-        ctx.logger.info("expecting array of applications")
-        return
-      }
+      const repository = url
+        ? {
+            kind: 'git',
+            url: url.trim(),
+            branch: branch.trim(),
+            path: rootPath.trim(),
+          }
+        : undefined;
+      const body = JSON.stringify({ name, repository });
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        const response = await fetch(`${baseURLHub}/applications`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${tokenSet.access_token}`,
+          },
+          body,
+        });
+
+        if (!response.ok) {
+          const responseText = await response.text();
+          logger.error(`HTTP Error ${response.status}: ${responseText}`);
+          throw new Error(
+            `Failed to create application. Server responded with status: ${response.status}`,
+          );
+        }
+
+        const responseData = await response.json();
+        logger.info(
+          `Application created successfully: ${JSON.stringify(responseData)}`,
+        );
+        return responseData;
+      } catch (error) {
+        logger.error(`Error in creating application: ${error.message}`);
+        throw error;
+      }
     },
   });
 }

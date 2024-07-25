@@ -5,7 +5,7 @@ kind: Template
 metadata:
   name: v1beta3-demo
   title: Onboard Application to MTA
-  description: scaffolder v1beta3 template demo
+  description: Onboard a new application to MTA
 spec:
   owner: mta
   type: service
@@ -22,9 +22,19 @@ spec:
           ui:autofocus: true
     - title: Choose a location
       properties:
-        repo:
-          title: Repository Location
+        url:
+          title: Repository URL
           type: string
+        branch: 
+          title: Branch
+          type: string
+          description: Repository branch to use
+          default: main
+        rootPath: 
+          title: Root Path
+          type: string
+          description: Path to the root of the repository
+          default: '.'
 
   # here's the steps that are executed in series in the scaffolder backend
   steps:
@@ -33,7 +43,9 @@ spec:
       action: mta:createApplication
       input:
         name: ${{ parameters.name }}
-        repo: ${{ parameters.repo }}
+        url: ${{ parameters.url }}
+        branch: ${{ parameters.branch }}
+        rootPath: ${{ parameters.rootPath }}
   # some outputs which are saved along with the job for use in the frontend
   output:
     links:
