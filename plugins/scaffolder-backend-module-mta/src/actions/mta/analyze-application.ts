@@ -208,7 +208,9 @@ export async function analyzeMTAApplicatonsAction(opts) {
         };
         console.log('submitted taskgroup', taskgroupResponse);
         const response = await submitTaskgroup(taskgroupResponse);
-        logger.info(`Taskgroup submitted: ${response.id}`);
+        logger.info(
+          `Taskgroup submitted. Status: ${response?.status ?? 'unknown'}`,
+        );
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
         logger.info(`Error: ${error}`);
