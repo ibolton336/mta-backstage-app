@@ -92,6 +92,7 @@ export async function analyzeMTAApplicatonsAction(opts) {
           ...defaultTaskData,
         },
         tasks: [],
+        kind: 'analyzer',
       };
 
       const createTaskgroup = async (obj: Taskgroup) => {
