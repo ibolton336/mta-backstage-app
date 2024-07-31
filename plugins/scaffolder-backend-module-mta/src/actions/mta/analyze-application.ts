@@ -40,13 +40,41 @@ export async function analyzeMTAApplicatonsAction(opts) {
     schema: {
       input: {
         type: 'object',
-        required: ['selectedApp'],
+        required: ['selectedApp', 'selectedTargets'],
         properties: {
           selectedApp: {
             title: 'Name of the application',
             description:
               'Name will be the display name in MTA appliation, will be the name seen in the catalog',
             type: 'string',
+          },
+          selectedTargets: {
+            title: 'Select Targets',
+            description: 'Select the targets for the analysis',
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: [
+                'eap8',
+                'eap7',
+                'cloud-readiness',
+                'quarkus',
+                'openjdk11',
+                'openjdk17',
+                'openjdk21',
+                'openjdk',
+                'linux',
+                'jakarta-ee',
+                'rhr',
+                'jws6',
+                'openliberty',
+                'camel3',
+                'camel4',
+                'azure-appservice',
+                'azure-aks',
+              ],
+            },
+            uniqueItems: true,
           },
         },
       },
@@ -179,11 +207,14 @@ export async function analyzeMTAApplicatonsAction(opts) {
         taskgroupResponse.data.rules = {
           labels: {
             excluded: [],
-            included: [
-              'konveyor.io/target=eap8',
-              'konveyor.io/target=cloud-readiness',
-              'konveyor.io/target=quarkus',
-            ],
+            // included: [
+            //   'konveyor.io/target=eap8',
+            //   'konveyor.io/target=cloud-readiness',
+            //   'konveyor.io/target=quarkus',
+            // ],
+            included: ctx.input.selectedTargets.map(
+              (target: string) => `konveyor.io/target=${target}`,
+            ),
           },
         };
         console.log('submitted taskgroup', taskgroupResponse);
