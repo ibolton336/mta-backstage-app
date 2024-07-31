@@ -4,12 +4,8 @@ import { Issuer, generators } from 'openid-client';
 import { CatalogClient } from '@backstage/catalog-client';
 
 export async function createMTAApplicatonAction(opts) {
-  const { config, logger, discovery } = opts;
-  const catalogClient = new CatalogClient({
-    discoveryApi: discovery,
-  });
-  const catalogBaseUrl = config.getString('backend.baseUrl');
-  const backendBaseUrl = config.getString('backend.baseUrl');
+  const { config, logger, discovery, identity } = opts;
+
   const baseUrl = config.getString('mta.url');
   const baseURLHub = baseUrl + '/hub';
   const realm = config.getString('mta.providerAuth.realm');
@@ -100,32 +96,6 @@ export async function createMTAApplicatonAction(opts) {
         logger.info(
           `Application created successfully: ${JSON.stringify(responseData)}`,
         );
-        // return responseData;
-        const newAppEntity = {
-          apiVersion: 'backstage.io/v1alpha1',
-          kind: 'Component',
-          metadata: {
-            name: name.toLowerCase().replace(/\s+/g, '-'),
-            annotations: {
-              'backstage.io/github-actions-id': name,
-            },
-          },
-          spec: {
-            type: 'service',
-            // lifecycle: 'production',
-            // owner: 'team-name',
-          },
-        };
-        // Assuming responseData contains the id of the created application
-        // const registeredEntity = await registerEntity(
-        //   backendBaseUrl,
-        //   newAppEntity,
-        //   tokenSet?.access_token || '',
-        // );
-        // logger.info(
-        //   `Entity registered successfully: ${JSON.stringify(registeredEntity)}`,
-        // );
-        // return registeredEntity;
       } catch (error) {
         logger.error(`Error in creating application: ${error.message}`);
         throw error;
@@ -133,38 +103,3 @@ export async function createMTAApplicatonAction(opts) {
     },
   });
 }
-
-async function registerEntity(
-  backendBaseUrl: string,
-  newAppEntity: any,
-  token: string,
-) {
-  try {
-    console.log('using url:' + backendBaseUrl + ' and token: ' + token);
-
-    const response = await fetch(
-      `${backendBaseUrl}/api/mta/application/entity`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newAppEntity),
-      },
-    );
-
-    if (!response.ok) {
-      const responseText = await response.text();
-      throw new Error(
-        `Failed to register entity. Server responded with status: ${response.status} ${responseText}`,
-      );
-    }
-
-    return await response.json();
-  } catch (error) {
-    throw new Error(`Error in registering entity: ${error.message}`);
-  }
-}
-
-// Usage within your handler

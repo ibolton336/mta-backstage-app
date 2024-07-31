@@ -69,7 +69,8 @@ export class MTAProvider implements EntityProvider {
     this.logger.info('here');
 
     const baseUrl = this.config.getString('mta.url');
-    const baseURLHub = `${baseUrl}/hub`;
+    const baseUrlHub = `${baseUrl}/hub`;
+    const baseUrlMta = `${baseUrl}`;
     const realm = this.config.getString('mta.providerAuth.realm');
     const clientID = this.config.getString('mta.providerAuth.clientID');
     const secret = this.config.getString('mta.providerAuth.secret');
@@ -95,7 +96,7 @@ export class MTAProvider implements EntityProvider {
       code_challenge,
       tokenSet,
       baseURLAuth,
-      baseURLHub,
+      baseUrlHub,
     });
 
     this.logger.info({
@@ -103,10 +104,10 @@ export class MTAProvider implements EntityProvider {
       code_challenge,
       tokenSet,
       baseURLAuth,
-      baseURLHub,
+      baseUrlHub,
     });
 
-    const getResponse = await fetch(`${baseURLHub}/applications`, {
+    const getResponse = await fetch(`${baseUrlHub}/applications`, {
       credentials: 'include',
       headers: {
         Accept: 'application/json, text/plain, */*',
@@ -135,6 +136,11 @@ export class MTAProvider implements EntityProvider {
         type: 'full',
         entities: j.map(application => {
           const name = application.name.replace(/ /g, '-');
+          const encodedAppName = encodeURIComponent(
+            JSON.stringify(application.name),
+          ); // Ensure the application name is URI-encoded
+          const issuesUrl = `${baseUrlMta}/issues?i%3Afilters=%7B%22application.name%22%3A%5B${encodedAppName}%5D%7D&i%3AitemsPerPage=10&i%3ApageNumber=1&i%3AsortColumn=description&i%3AsortDirection=asc`;
+
           return {
             key: application.id,
             locationKey: this.getProviderName(),
@@ -143,12 +149,14 @@ export class MTAProvider implements EntityProvider {
               kind: 'Component',
               metadata: {
                 annotations: {
-                  'backstage.io/managed-by-location': `url:${baseURLHub}/application/${application.id}`,
-                  'backstage.io/managed-by-origin-location': `url:${baseURLHub}/application/${application.id}`,
+                  'backstage.io/managed-by-location': `url:${baseUrlMta}/application/${application.id}`,
+                  'backstage.io/managed-by-origin-location': `url:${baseUrlMta}/application/${application.id}`,
+                  'issues-url': `${issuesUrl}`,
                 },
                 name: name,
                 id: application.id,
                 namespace: 'default',
+                application: application,
               },
               spec: {
                 type: 'service',

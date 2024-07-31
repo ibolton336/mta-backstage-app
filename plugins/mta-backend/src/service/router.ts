@@ -320,6 +320,7 @@ export async function createRouter(
   });
 
   router.get('/issues/:id', async (request, response) => {
+    b;
     const getResponse = fetch(
       baseURLHub + '/applications/' + request.params.id + '/analysis/issues',
       {
