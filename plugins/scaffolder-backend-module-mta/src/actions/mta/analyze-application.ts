@@ -4,17 +4,10 @@ import { CatalogClient } from '@backstage/catalog-client';
 
 export async function analyzeMTAApplicatonsAction(opts) {
   const { config, logger, discovery } = opts;
-  console.log('opts', opts, discovery);
 
   const catalogClient = new CatalogClient({
     discoveryApi: discovery,
   });
-  const catalogUrl = await discovery.getBaseUrl('catalog');
-  console.log(`Catalog service URL: ${catalogUrl}`);
-  const entities = await catalogClient.getEntities({
-    filter: { kind: 'Component' },
-  });
-  console.log('Fetched entities:', entities);
 
   const baseUrl = config.getString('mta.url');
   const baseURLHub = `${baseUrl}/hub`;
@@ -144,23 +137,10 @@ export async function analyzeMTAApplicatonsAction(opts) {
         };
       };
       try {
-        // const initTask = (application: Application): TaskgroupTask => {
-        //   return {
-        //     name: `${application.name}.${application.id}.windup`,
-        //     data: {},
-        //     application: { id: application.id as number, name: application.name },
-        //   };
-        // };
         const [kindNamespace, name] = ctx.input.selectedApp.split('/');
 
         const [kind, namespace] = kindNamespace.split(':');
 
-        // const entities = await catalogClient.getEntities({
-        //   filter: { kind: 'Component', 'metadata.name': ctx.input.selectedApp },
-        // });
-        // console.log('entities', entities);j
-        // const entity = entities.items[0];
-        // console.log('entity', entity);
         console.log('app entity', kind, namespace, name);
         const entities = await catalogClient.getEntities({
           filter: {

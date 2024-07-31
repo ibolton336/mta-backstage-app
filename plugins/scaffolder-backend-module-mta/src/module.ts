@@ -22,6 +22,7 @@ export const mtaScaffolderModule = createBackendModule({
         const createAction = await createMTAApplicatonAction({
           config: config,
           logger: loggerToWinstonLogger(logger),
+          discovery,
         });
         const analyzeAction = await analyzeMTAApplicatonsAction({
           config,
