@@ -24,6 +24,16 @@ spec:
           catalogFilter:
             - spec.type: service
               kind: Component
+      selectedTargets:
+        title: Select Targets for Analysis
+        description: Choose the target platforms for the application analysis
+        type: array
+        items:
+          type: string
+          enum: ["eap8", "eap7", "cloud-readiness", "quarkus", "openjdk11", "openjdk17", "openjdk21", "openjdk", "linux", "jakarta-ee", "rhr", "jws6", "openliberty", "camel3", "camel4", "azure-appservice", "azure-aks"]
+        ui:field: CheckboxGroup
+        ui:options:
+          layout: "grid"
       # EntityPicker:
       #   name: 'selectedApp'
       #   title: Select an application
@@ -49,6 +59,7 @@ spec:
     action: mta:analyzeApplication
     input: 
       selectedApp: ${{ parameters.selectedApp }}
+      selectedTargets: ${{ parameters.selectedTargets }}
   # some outputs which are saved along with the job for use in the frontend
   output:
     links:
