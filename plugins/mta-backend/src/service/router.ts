@@ -294,27 +294,33 @@ export async function createRouter(
   });
 
   router.post('/application/entity', async (request, response) => {
-    const { entityID, applicationID } = request.body;
-    logger.info('attempting to save: ' + entityID + ' ' + applicationID);
-    const res = await entityApplicationStorage.saveApplicationIDForEntity(
-      entityID,
-      applicationID,
-    );
     logger.info(
-      'attempting to save: ' + entityID + ' ' + applicationID + ' result' + res,
+      'Received request for /application/entity with body:',
+      request.body,
     );
-    if (!res) {
-      response.status(500);
-      response.json({});
-      return;
-    }
+    const { entityID, applicationID } = request.body;
 
-    response.status(201);
-    response.json({ entityID: entityID, applicationID: applicationID });
-    return;
+    try {
+      logger.info('Attempting to save:', entityID, applicationID);
+      const res = await entityApplicationStorage.saveApplicationIDForEntity(
+        entityID,
+        applicationID,
+      );
+      if (!res) {
+        logger.error('Failed to save application ID for entity');
+        response.status(500).json({ error: 'Failed to save data' });
+        return;
+      }
+      logger.info('Successfully saved:', entityID, applicationID);
+      response.status(201).json({ entityID, applicationID });
+    } catch (error) {
+      logger.error('Error in /application/entity:', error);
+      response.status(500).json({ error: 'Internal Server Error' });
+    }
   });
 
   router.get('/issues/:id', async (request, response) => {
+    b;
     const getResponse = fetch(
       baseURLHub + '/applications/' + request.params.id + '/analysis/issues',
       {

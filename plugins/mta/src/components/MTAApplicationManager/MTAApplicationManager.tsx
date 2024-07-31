@@ -2,7 +2,6 @@ import React from 'react';
 import { Grid, Tab, Tabs, Box, Typography } from '@material-ui/core';
 import { ResponseErrorPanel } from '@backstage/core-components';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { DenseApplicationTable } from '../DenseApplicationTable/DenseApplicationTable';
 import { AppCard } from '../AppCard/AppCard';
 
 export const MTAApplicationManager = () => {
@@ -42,17 +41,21 @@ export const MTAApplicationManager = () => {
           aria-label="Application tabs"
         >
           <Tab label="Application" />
-          <Tab label="Link Application" />
+          <Tab label="Issues" />
+          {/* <Tab label="Effort" /> */}
         </Tabs>
       </Box>
 
       {/* Conditional rendering of tab panels */}
       <Grid item xs={12} role="tabpanel" hidden={tab !== 0} id={`tabpanel-0`}>
-        <AppCard entityID={entityID} />
+        <AppCard />
       </Grid>
-      <Grid item xs={12} role="tabpanel" hidden={tab !== 1} id={`tabpanel-1`}>
-        <DenseApplicationTable />
-      </Grid>
+      {/* <Grid item xs={12} role="tabpanel" hidden={tab !== 1} id={`tabpanel-1`}>
+        <IssuesTable />
+      </Grid> */}
+      {/* <Grid item xs={12} role="tabpanel" hidden={tab !== 1} id={`tabpanel-1`}>
+        </>
+      </Grid> */}
     </Box>
   );
 };

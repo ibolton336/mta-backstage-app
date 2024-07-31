@@ -1,6 +1,5 @@
 import React from 'react';
-import { InfoCard } from '@backstage/core-components';
-import { Application } from '../../api/api';
+import { InfoCard, LinkButton } from '@backstage/core-components';
 import {
   Grid,
   Typography,
@@ -10,14 +9,25 @@ import {
   Chip,
   Box,
 } from '@material-ui/core';
+import { useEntity } from '@backstage/plugin-catalog-react';
+import { Application } from '../../api/api';
 
-const ApplicationDetails = (application: Application) => {
+const ApplicationDetails = () => {
+  const entity = useEntity();
+  const application = entity.entity.metadata
+    .application as unknown as Application;
+
+  const annotations = entity?.entity?.metadata?.annotations || {};
+  const viewUrl = annotations['issues-url'] || '';
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <InfoCard title={`Application: ${application.name}`}>
-          <Typography variant="subtitle1">General Information</Typography>
           <List dense>
+            <LinkButton to={viewUrl} target="_blank">
+              View Issues
+            </LinkButton>
             <ListItem>
               <ListItemText primary="ID" secondary={application.id} />
             </ListItem>

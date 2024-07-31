@@ -1,30 +1,23 @@
 import { createTemplateAction } from '@backstage/plugin-scaffolder-node';
 import { coreServices } from '@backstage/backend-plugin-api';
 import { Issuer, generators } from 'openid-client';
+import { CatalogClient } from '@backstage/catalog-client';
 
-/**
- * Creates an `acme:example` Scaffolder action.
- *
- * @remarks
- * See {@link https://example.com} for more information.
- * @public
- */
 export async function createMTAApplicatonAction(opts) {
-  const { config, logger } = opts;
+  const { config, logger, discovery, identity } = opts;
+
   const baseUrl = config.getString('mta.url');
   const baseURLHub = baseUrl + '/hub';
   const realm = config.getString('mta.providerAuth.realm');
   const clientID = config.getString('mta.providerAuth.clientID');
   const secret = config.getString('mta.providerAuth.secret');
   const baseURLAuth = baseUrl + '/auth/realms/' + realm;
-
   const mtaAuthIssuer = await Issuer.discover(baseURLAuth);
   const authClient = new mtaAuthIssuer.Client({
     client_id: clientID,
     client_secret: secret,
     response_types: ['code'],
   });
-
   const tokenSet = await authClient.grant({
     grant_type: 'client_credentials',
   });
@@ -32,7 +25,6 @@ export async function createMTAApplicatonAction(opts) {
     logger.error('Failed to obtain access token from auth server.');
     throw new Error('Unable to access hub due to authentication failure.');
   }
-
   return createTemplateAction<{
     name: string;
     url: string;
@@ -75,7 +67,6 @@ export async function createMTAApplicatonAction(opts) {
       logger.info(
         `Creating application with: ${name}, ${url}, ${branch}, ${rootPath}`,
       );
-
       const repository = url
         ? {
             kind: 'git',
@@ -85,7 +76,6 @@ export async function createMTAApplicatonAction(opts) {
           }
         : undefined;
       const body = JSON.stringify({ name, repository });
-
       try {
         const response = await fetch(`${baseURLHub}/applications`, {
           method: 'POST',
@@ -95,7 +85,6 @@ export async function createMTAApplicatonAction(opts) {
           },
           body,
         });
-
         if (!response.ok) {
           const responseText = await response.text();
           logger.error(`HTTP Error ${response.status}: ${responseText}`);
@@ -103,12 +92,10 @@ export async function createMTAApplicatonAction(opts) {
             `Failed to create application. Server responded with status: ${response.status}`,
           );
         }
-
         const responseData = await response.json();
         logger.info(
           `Application created successfully: ${JSON.stringify(responseData)}`,
         );
-        return responseData;
       } catch (error) {
         logger.error(`Error in creating application: ${error.message}`);
         throw error;

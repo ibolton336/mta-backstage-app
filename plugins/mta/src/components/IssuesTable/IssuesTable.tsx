@@ -2,61 +2,43 @@ import React from 'react';
 import { InfoCard, Table, TableColumn } from '@backstage/core-components';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import { Button } from '@material-ui/core';
-import { useApi } from '@backstage/core-plugin-api';
-import { mtaApiRef } from '../../api/api';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import {
-  useFetchAllEntities,
-  useFetchApplication,
-  useFetchApplications,
-  useSaveApplicationEntity,
-} from '../../queries/mta';
 import { Progress, ResponseErrorPanel } from '@backstage/core-components';
-import { InvalidateQueryFilters, useQueryClient } from '@tanstack/react-query';
 
-type DenseApplicationTableProps = {
-  // entityID: string;
-};
-
-export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = (
-  {
-    // entityID,
-  },
-) => {
-  const queryClient = useQueryClient();
-
+export const IssuesTable: React.FC = () => {
   const entity = useEntity();
   const entityID = entity.entity.metadata.uid ?? '';
 
-  const {
-    applications,
-    isURL,
-    isFetching: isFetchingApps,
-    fetchError: fetchErrorApps,
-    isError: isErrorApps,
-  } = useFetchApplications();
+  // const baseURL =
+  //   'https://tackle-konveyor-tackle.ibolton-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud/issues';
+  const baseURL =
+    'https://tackle-konveyor-tackle.ibolton-3626522b15eedb880d7b99992e225c1b-0000.us-east.containers.appdomain.cloud/issues';
+  console.log('entity- find url', entity);
+  const appName = entity?.application?.name || '';
+  const encodedAppName = encodeURIComponent(appName);
 
-  const {
-    application: applicationEntity,
-    isFetching: isFetchingApp,
-    fetchError: fetchErrorApp,
-    isError: isErrorApp,
-  } = useFetchApplication(entityID);
-  const {
-    entities: allEntities,
-    isFetching: isFetchingAllEntities,
-    fetchError: fetchErrorAllEntities,
-    isError: isErrorAllEntities,
-  } = useFetchAllEntities();
+  let fullURL = `${baseURL}?i%3Afilters=%7B%22application.name%22%3A%5B${encodedAppName}%5D%7D&i%3AitemsPerPage=10&i%3`;
 
-  const { mutate: saveApplicationEntity } = useSaveApplicationEntity({
-    onSuccess: () => {
-      const filters: InvalidateQueryFilters = {
-        queryKey: ['entities'],
-      };
-      queryClient.invalidateQueries(filters);
-    },
-  });
+  // const {
+  //   applications,
+  //   isURL,
+  //   isFetching: isFetchingApps,
+  //   fetchError: fetchErrorApps,
+  //   isError: isErrorApps,
+  // } = useFetchApplications();
+
+  // const {
+  //   application: applicationEntity,
+  //   isFetching: isFetchingApp,
+  //   fetchError: fetchErrorApp,
+  //   isError: isErrorApp,
+  // } = useFetchApplication(entityID);
+  // const {
+  //   entities: allEntities,
+  //   isFetching: isFetchingAllEntities,
+  //   fetchError: fetchErrorAllEntities,
+  //   isError: isErrorAllEntities,
+  // } = useFetchAllEntities();
 
   const columns: TableColumn[] = [
     { title: 'Name', field: 'name' },
@@ -96,12 +78,12 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = (
         return (
           <div>
             <Button
-              onClick={() =>
-                saveApplicationEntity({
-                  applicationID: rowData.mtaID,
-                  entityID,
-                })
-              }
+            // onClick={() =>
+            //   saveApplicationEntity({
+            //     applicationID: rowData.mtaID,
+            //     entityID,
+            //   })
+            // }
             >
               <AddLinkIcon />
             </Button>
@@ -143,28 +125,29 @@ export const DenseApplicationTable: React.FC<DenseApplicationTableProps> = (
     //   },
     // },
   ];
-  if (isFetchingApps || isFetchingApp) return <Progress />;
-  if (isErrorApps && fetchErrorApps) {
-    return (
-      <ResponseErrorPanel
-        title="Error fetching applications"
-        error={fetchErrorApps}
-      />
-    );
-  }
-  const data = isURL
-    ? []
-    : applications?.map(application => ({
-        name: application.name,
-        description: application.description,
-        assessed: application.assessed,
-        mtaID: application.id,
-      }));
+  // if (isFetchingApps || isFetchingApp) return <Progress />;
+  // if (isErrorApps && fetchErrorApps) {
+  //   return (
+  //     <ResponseErrorPanel
+  //       title="Error fetching applications"
+  //       error={fetchErrorApps}
+  //     />
+  //   );
+  // }
+  // const data = isURL
+  //   ? []
+  //   : applications?.map(application => ({
+  //       name: application.name,
+  //       description: application.description,
+  //       assessed: application.assessed,
+  //       mtaID: application.id,
+  //     }));
+  const data = [];
 
   return (
     <InfoCard title="Link your Application to Component">
       <Table
-        title="Application List"
+        title="Issues List"
         options={{ search: false, paging: true }}
         columns={columns}
         data={data}
