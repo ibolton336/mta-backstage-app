@@ -293,31 +293,31 @@ export async function createRouter(
     }
   });
 
-  // router.post('/application/entity', async (request, response) => {
-  //   logger.info(
-  //     'Received request for /application/entity with body:',
-  //     request.body,
-  //   );
-  //   const { entityID, applicationID } = request.body;
+  router.post('/application/entity', async (request, response) => {
+    logger.info(
+      'Received request for /application/entity with body:',
+      request.body,
+    );
+    const { entityID, applicationID } = request.body;
 
-  //   try {
-  //     logger.info('Attempting to save:', entityID, applicationID);
-  //     const res = await entityApplicationStorage.saveApplicationIDForEntity(
-  //       entityID,
-  //       applicationID,
-  //     );
-  //     if (!res) {
-  //       logger.error('Failed to save application ID for entity');
-  //       response.status(500).json({ error: 'Failed to save data' });
-  //       return;
-  //     }
-  //     logger.info('Successfully saved:', entityID, applicationID);
-  //     response.status(201).json({ entityID, applicationID });
-  //   } catch (error) {
-  //     logger.error('Error in /application/entity:', error);
-  //     response.status(500).json({ error: 'Internal Server Error' });
-  //   }
-  // });
+    try {
+      logger.info('Attempting to save:', entityID, applicationID);
+      const res = await entityApplicationStorage.saveApplicationIDForEntity(
+        entityID,
+        applicationID,
+      );
+      if (!res) {
+        logger.error('Failed to save application ID for entity');
+        response.status(500).json({ error: 'Failed to save data' });
+        return;
+      }
+      logger.info('Successfully saved:', entityID, applicationID);
+      response.status(201).json({ entityID, applicationID });
+    } catch (error) {
+      logger.error('Error in /application/entity:', error);
+      response.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
 
   router.get('/issues/:id', async (request, response) => {
     const getResponse = fetch(
