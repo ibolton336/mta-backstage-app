@@ -3,6 +3,19 @@ import {
   IdentityApi,
   createApiRef,
 } from '@backstage/core-plugin-api';
+export interface Metadata {
+  target: string;
+  source?: string;
+  otherLabels?: string[];
+}
+export interface Rule {
+  name: string;
+  metadata?: Metadata;
+  labels?: string[];
+  file?: {
+    id: number;
+  };
+}
 
 export type Tags = {
   name: string;
@@ -14,6 +27,49 @@ export type Ref = {
   id: number;
   name: string;
 };
+export interface ITypeOptions {
+  key: string;
+  value: string;
+}
+
+export interface RulesetImage {
+  id: number;
+  name?: string;
+}
+
+export enum RulesetKind {
+  CATEGORY = 'category',
+}
+export interface Repository {
+  kind?: string;
+  branch?: string;
+  path?: string;
+  url?: string;
+}
+export interface Ruleset {
+  id?: number;
+  kind?: RulesetKind;
+  name?: string;
+  description?: string;
+  rules: Rule[];
+  repository?: Repository;
+  identity?: Ref;
+}
+export interface TargetLabel {
+  name: string;
+  label: string;
+}
+export interface Target {
+  id: number;
+  name: string;
+  description?: string;
+  choice?: boolean;
+  custom?: boolean;
+  labels?: TargetLabel[];
+  image?: RulesetImage;
+  ruleset: Ruleset;
+  provider?: string;
+}
 
 export type Application = {
   id: string;
@@ -35,12 +91,8 @@ export type Application = {
 export interface MTAApi {
   getApplications(): Promise<Application[] | URL>;
   getApplication(entityID: string): Promise<Application | URL | null>;
+  getTargets(): Promise<Target[] | URL>;
   getAllEntities(): Promise<any[]>;
-  saveApplicationEntity(
-    applicationID: string,
-    entityID: any,
-  ): Promise<Application | URL>;
-  getExample(): { example: string };
 }
 
 export const mtaApiRef = createApiRef<MTAApi>({
@@ -80,6 +132,34 @@ export class DefaultMtaApi implements MTAApi {
     return await response.json();
   }
 
+  async getTargets(): Promise<Target[] | URL> {
+    const url = await this.discoveryApi.getBaseUrl('mta');
+    const { token: idToken } = await this.identityApi.getCredentials();
+
+    const response = await fetch(`${url}/targets`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(idToken && { Authorization: `Bearer ${idToken}` }),
+      },
+      referrerPolicy: 'no-referrer-when-downgrade',
+      redirect: 'error',
+    });
+
+    if (response.status === 401) {
+      const j = await response.json();
+      return new URL(j.loginURL);
+    }
+
+    if (!response.ok) {
+      const message = `Request failed with status ${
+        response.status
+      }: ${await response.text()}`;
+      throw new Error(message);
+    }
+
+    return await response.json();
+  }
   async getApplications(): Promise<Application[] | URL> {
     const url = await this.discoveryApi.getBaseUrl('mta');
     const { token: idToken } = await this.identityApi.getCredentials();
@@ -139,48 +219,11 @@ export class DefaultMtaApi implements MTAApi {
     return await response.json();
   }
 
-  async saveApplicationEntity(
-    applicationID: string,
-    entityID: string,
-  ): Promise<Application | URL> {
-    const url = await this.discoveryApi.getBaseUrl('mta');
-    const { token: idToken } = await this.identityApi.getCredentials();
-
-    const response = await fetch(`${url}/application/entity`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(idToken && { Authorization: `Bearer ${idToken}` }),
-      },
-      body: JSON.stringify({ applicationID, entityID }),
-      referrerPolicy: 'no-referrer-when-downgrade',
-      redirect: 'error',
-    });
-
-    if (response.status === 401) {
-      const j = await response.json();
-      return new URL(j.loginURL); // Redirect for login
-    }
-
-    if (!response.ok) {
-      const message = `Request failed with ${response.status} ${
-        response.statusText
-      }: ${await response.json()}`;
-      throw new Error(message);
-    }
-
-    return await response.json(); // Success case
-  }
-
   constructor(options: {
     discoveryApi: DiscoveryApi;
     identityApi: IdentityApi;
   }) {
     this.discoveryApi = options.discoveryApi;
     this.identityApi = options.identityApi;
-  }
-
-  getExample(): { example: string } {
-    return { example: 'Hello World!' };
   }
 }

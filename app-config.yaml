@@ -125,10 +125,10 @@ catalog:
       target: ../../examples/template/create-application-template.yaml
       rules:
         - allow: [Template]
-    - type: file
-      target: ../../examples/template/run-analysis-template.yaml
-      rules:
-        - allow: [Template]
+    # - type: file
+    #   target: ../../examples/template/run-analysis-template.yaml
+    #   rules:
+    #     - allow: [Template]
 
     # - type: file
     #   target: ../../examples/template/analysis-template-test.yaml

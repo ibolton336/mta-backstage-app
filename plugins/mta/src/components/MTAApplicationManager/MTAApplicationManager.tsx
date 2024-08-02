@@ -3,6 +3,7 @@ import { Grid, Tab, Tabs, Box, Typography } from '@material-ui/core';
 import { ResponseErrorPanel } from '@backstage/core-components';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { AppCard } from '../AppCard/AppCard';
+import { AnalysisPage } from '../AnalysisPage/AnalysisPage';
 
 export const MTAApplicationManager = () => {
   const entity = useEntity();
@@ -40,8 +41,8 @@ export const MTAApplicationManager = () => {
           onChange={handleTabChange}
           aria-label="Application tabs"
         >
-          <Tab label="Application" />
-          <Tab label="Issues" />
+          <Tab label="Application Details" />
+          <Tab label="Analysis" />
           {/* <Tab label="Effort" /> */}
         </Tabs>
       </Box>
@@ -50,9 +51,9 @@ export const MTAApplicationManager = () => {
       <Grid item xs={12} role="tabpanel" hidden={tab !== 0} id={`tabpanel-0`}>
         <AppCard />
       </Grid>
-      {/* <Grid item xs={12} role="tabpanel" hidden={tab !== 1} id={`tabpanel-1`}>
-        <IssuesTable />
-      </Grid> */}
+      <Grid item xs={12} role="tabpanel" hidden={tab !== 1} id={`tabpanel-1`}>
+        <AnalysisPage />
+      </Grid>
       {/* <Grid item xs={12} role="tabpanel" hidden={tab !== 1} id={`tabpanel-1`}>
         </>
       </Grid> */}
