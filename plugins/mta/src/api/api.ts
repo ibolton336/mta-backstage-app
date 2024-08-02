@@ -93,6 +93,10 @@ export interface MTAApi {
   getApplication(entityID: string): Promise<Application | URL | null>;
   getTargets(): Promise<Target[] | URL>;
   getAllEntities(): Promise<any[]>;
+  analyzeMTAApplications(
+    applicationId: string,
+    analysisOptions: any,
+  ): Promise<any | URL>;
 }
 
 export const mtaApiRef = createApiRef<MTAApi>({
@@ -214,6 +218,41 @@ export class DefaultMtaApi implements MTAApi {
         response.status
       }: ${await response.text()}`;
       throw new Error(message);
+    }
+
+    return await response.json();
+  }
+
+  async analyzeMTAApplications(
+    applicationId: string,
+    analysisOptions: any,
+  ): Promise<Application | URL> {
+    const url = await this.discoveryApi.getBaseUrl('mta');
+    const { token: idToken } = await this.identityApi.getCredentials();
+
+    const response = await fetch(
+      `${url}/analyze-application/${applicationId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(idToken && { Authorization: `Bearer ${idToken}` }),
+        },
+        body: JSON.stringify(analysisOptions), // Make sure analysisOptions is in the correct format expected by the API
+        referrerPolicy: 'no-referrer-when-downgrade',
+      },
+    );
+
+    if (response.status === 401) {
+      const jsonResponse = await response.json();
+      return new URL(jsonResponse.loginURL); // Assuming the server redirects to a login URL if not authenticated
+    }
+
+    if (!response.ok) {
+      const errorMessage = `Request failed with status ${
+        response.status
+      }: ${await response.text()}`;
+      throw new Error(errorMessage);
     }
 
     return await response.json();

@@ -1,4 +1,9 @@
-import { useQuery, QueryFunction, useMutation } from '@tanstack/react-query';
+import {
+  useQuery,
+  QueryFunction,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { mtaApiRef, Application, MTAApi, Target } from '../api/api';
 import { useApi } from '@backstage/core-plugin-api';
 
@@ -197,4 +202,48 @@ export const useFetchTargets = () => {
     fetchError: error,
     isError: isError,
   };
+};
+
+interface AnalyzeApplicationParams {
+  selectedApp: string; // Assuming 'selectedApp' is actually a string ID
+  analysisOptions: any; // Keep 'any' or define a more specific type if possible
+}
+interface UseAnalyzeApplicationOptions {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}
+export const useAnalyzeApplication = (
+  options?: UseAnalyzeApplicationOptions,
+) => {
+  const api = useApi(mtaApiRef);
+  const queryClient = useQueryClient();
+
+  const analyzeApplications = async ({
+    selectedApp,
+    analysisOptions,
+  }: AnalyzeApplicationParams) => {
+    return await api.analyzeMTAApplications(selectedApp, analysisOptions);
+  };
+
+  const mutation = useMutation<
+    AnalyzeApplicationParams | URL,
+    Error,
+    AnalyzeApplicationParams
+  >({
+    mutationFn: analyzeApplications,
+    onSuccess: data => {
+      if (data instanceof URL) {
+        window.location.href = data.toString(); // handle redirection
+      }
+      if (options?.onSuccess) {
+        options.onSuccess();
+        queryClient.invalidateQueries();
+      }
+    },
+    onError: error => {
+      console.error('Error during saving application entity:', error);
+    },
+  });
+
+  return mutation;
 };

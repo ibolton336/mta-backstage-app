@@ -341,7 +341,6 @@ export async function createRouter(
   });
 
   router.get('/issues/:id', async (request, response) => {
-    b;
     const getResponse = fetch(
       baseURLHub + '/applications/' + request.params.id + '/analysis/issues',
       {
@@ -355,7 +354,7 @@ export async function createRouter(
     );
 
     const status = await (await getResponse).status;
-    if (status != 200) {
+    if (status !== 200) {
       logger.error('resposne does not make sense %s', getResponse);
       response.status(status);
       response.json({ status: status });
@@ -365,6 +364,258 @@ export async function createRouter(
     response.json(j);
   });
 
+  router.post(
+    '/analyze-application/:applicationId',
+    async (request, response) => {
+      const applicationId = request.params.applicationId;
+      const analysisOptions = request.body; // Assuming all other required options are passed in the body
+      const { application, targetList, type } = analysisOptions;
+
+      logger.info(
+        'Received request to analyze application:',
+        applicationId,
+        'with options:',
+        analysisOptions,
+      );
+
+      const TASKGROUPS = `${baseURLHub}/taskgroups`;
+      // Step 1: Create a task group
+
+      const defaultTaskData: TaskData = {
+        tagger: {
+          enabled: true,
+        },
+        verbosity: 0,
+        mode: {
+          binary: false,
+          withDeps: false,
+          artifact: '',
+        },
+        targets: [],
+        sources: [],
+        scope: {
+          withKnownLibs: false,
+          packages: {
+            included: [],
+            excluded: [],
+          },
+        },
+      };
+
+      const defaultTaskgroup = {
+        name: `taskgroup.analyzer`,
+        data: {
+          ...defaultTaskData,
+        },
+        tasks: [],
+        kind: 'analyzer',
+      };
+
+      // const createTaskgroup = async (obj: Taskgroup) => {
+      //   const createTaskgroupResponse = await fetch(TASKGROUPS, {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       Authorization: `Bearer ${response.locals.access_token}`,
+      //     },
+      //     body: JSON.stringify(obj),
+      //   });
+
+      //   if (!createTaskgroupResponse.ok) {
+      //     const errorText = await createTaskgroupResponse.text();
+      //     logger.info(
+      //       `Unable to call hub, status: ${response.status}, message: ${errorText}`,
+      //     );
+      //     throw new Error(
+      //       `HTTP error! status: ${response.status}, body: ${errorText}`,
+      //     );
+      //   }
+      //   return await createTaskgroupResponse.json();
+      // };
+      const createTaskgroup = async (obj: Taskgroup) => {
+        console.log('obj', obj);
+        const createTaskgroupResponse = await fetch(TASKGROUPS, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json, text/plain, */*',
+
+            Authorization: `Bearer ${response.locals.accessToken}`,
+          },
+          body: JSON.stringify(obj),
+        });
+
+        // Correct use of response status from the fetch call
+        if (!createTaskgroupResponse.ok) {
+          const contentType =
+            createTaskgroupResponse.headers.get('content-type');
+          let errorText;
+
+          // Check if the response is text/html which might indicate a redirection or an error page
+          if (contentType && contentType.includes('text/html')) {
+            errorText =
+              'Received HTML response instead of JSON. Possible authorization or redirect issue.';
+          } else {
+            errorText = await createTaskgroupResponse.text();
+          }
+
+          logger.error(
+            `Unable to call hub, status: ${createTaskgroupResponse.status}, message: ${errorText}`,
+          );
+          throw new Error(
+            `HTTP error! status: ${createTaskgroupResponse.status}, body: ${errorText}`,
+          );
+        }
+
+        try {
+          return await createTaskgroupResponse.json();
+        } catch (e) {
+          throw new Error('Failed to parse JSON response.');
+        }
+      };
+
+      const submitTaskgroup = async (obj: Taskgroup) => {
+        const submitTaskgroupResponse = await fetch(
+          `${TASKGROUPS}/${obj.id}/submit`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json, text/plain, */*',
+              Authorization: `Bearer ${response.locals.accessToken}`,
+            },
+            body: JSON.stringify(obj),
+          },
+        );
+
+        if (!submitTaskgroupResponse.ok) {
+          const errorText = await submitTaskgroupResponse.text();
+          logger.info(
+            `Unable to call hub, status: ${submitTaskgroupResponse.status}, message: ${errorText}`,
+          );
+          throw new Error(
+            `HTTP error! status: ${submitTaskgroupResponse.status}, body: ${errorText}`,
+          );
+        }
+        // Return the status code to indicate success or no content
+        logger.info(
+          `Operation successful, status code: ${submitTaskgroupResponse.status}`,
+        );
+        return {
+          status: submitTaskgroupResponse.status,
+          message: 'Submission successful',
+        };
+      };
+
+      try {
+        const taskgroupResponse = await createTaskgroup(defaultTaskgroup);
+        taskgroupResponse.tasks = [
+          {
+            name: `taskgroup.analyzer.${application.name}`,
+            data: {},
+            application: {
+              id: application.id as number,
+              name: application.name,
+            },
+          },
+        ];
+        taskgroupResponse.data.mode = {
+          binary: false,
+          withDeps: true,
+          artifact: '',
+        };
+        taskgroupResponse.data.rules = {
+          labels: {
+            excluded: [],
+            // included: [
+            //   'konveyor.io/target=eap8',
+            //   'konveyor.io/target=cloud-readiness',
+            //   'konveyor.io/target=quarkus',
+            // ],
+            included: targetList,
+          },
+        };
+        console.log('submitted taskgroup', taskgroupResponse);
+        const submitTaskgroupResponse = await submitTaskgroup(
+          taskgroupResponse,
+        );
+        logger.info(
+          `Taskgroup submitted. Status: ${response?.status ?? 'unknown'}`,
+        );
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        logger.error(
+          'Error during analysis of application:',
+          applicationId,
+          error,
+        );
+        response
+          .status(500)
+          .json({ error: 'Internal Server Error', details: error.message });
+      }
+    },
+  );
+
   router.use(errorHandler());
   return router;
+}
+
+export interface Taskgroup {
+  id?: number;
+  name: string;
+  kind?: string;
+  addon?: string;
+  data: TaskData;
+  tasks: TaskgroupTask[];
+}
+export interface TaskData {
+  tagger: {
+    enabled: boolean;
+  };
+  verbosity: number;
+  mode: {
+    binary: boolean;
+    withDeps: boolean;
+    artifact: string;
+    csv?: boolean;
+  };
+  targets?: string[];
+  sources?: string[];
+  scope: {
+    withKnownLibs: boolean;
+    packages: {
+      included: string[];
+      excluded: string[];
+    };
+  };
+  rules?: {
+    path: string;
+    tags: {
+      excluded: string[];
+    };
+    repository?: Repository;
+    identity?: Ref;
+    labels: {
+      included: string[];
+      excluded: string[];
+    };
+  };
+}
+
+export interface TaskgroupTask {
+  name: string;
+  data: any;
+  application: Ref;
+}
+
+export interface Ref {
+  id: number;
+  name: string;
+}
+
+export interface Repository {
+  kind?: string;
+  branch?: string;
+  path?: string;
+  url?: string;
 }

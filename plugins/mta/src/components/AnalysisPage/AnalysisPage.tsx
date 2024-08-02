@@ -9,7 +9,13 @@ import {
   CircularProgress,
 } from '@material-ui/core';
 import { useForm, Controller } from 'react-hook-form';
-import { useFetchTargets, useFetchApplications } from '../../queries/mta';
+import {
+  useFetchTargets,
+  useFetchApplications,
+  useAnalyzeApplication,
+} from '../../queries/mta';
+import { useEntity } from '@backstage/plugin-catalog-react';
+import { Application } from '../../api/api';
 
 interface IFormInput {
   type: string;
@@ -24,12 +30,23 @@ export const AnalysisPage = () => {
     },
   });
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const entity = useEntity();
+  console.log('app entity', entity);
+
   const { targets } = useFetchTargets();
-  const { applications } = useFetchApplications();
+  const options = {
+    // onSuccess: () => {
+    //   console.log('Analysis successful');
+    // },
+    // onError: error => {
+    //   console.error('Analysis error', error);
+    // },
+  };
+  const { mutate: analyzeApp } = useAnalyzeApplication(options);
 
   // Flatten the labels into a single array of options
   const labelOptions = targets
-    ? targets.flatMap(target =>
+    ? targets?.flatMap(target =>
         target?.labels?.map(label => ({
           label: label.label,
           name: label.name,
@@ -40,6 +57,17 @@ export const AnalysisPage = () => {
   const onSubmit = (data: IFormInput) => {
     setIsAnalyzing(true);
     console.log(data);
+    const app = entity.entity.metadata.application as unknown as Application;
+    const analysisParams = {
+      selectedApp: app.id, // Assuming 'applications' is an array of objects
+      analysisOptions: {
+        type: data.type,
+        targetList: data.targetList,
+        application: app,
+      },
+    };
+
+    analyzeApp(analysisParams);
     setTimeout(() => {
       setIsAnalyzing(false);
     }, 2000); // Simulates 2 seconds of analysis
