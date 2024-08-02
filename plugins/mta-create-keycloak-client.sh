@@ -118,7 +118,7 @@ CLIENT_SCOPES=$(curl -s "$KEYCLOAK_URL/admin/realms/$MTA_REALM/client-scopes" \
   -H "Content-Type: application/json")
 
 # Define desired scopes
-DESIRABLE_SCOPES=("applications:get" "applications:post" "applications:put" "applications:delete" "tasks:get" "tasks:post" "tasks:put" "tasks:delete")
+DESIRABLE_SCOPES=("targets:get applications:get" "applications:post" "applications:put" "applications:delete" "tasks:get" "tasks:post" "tasks:put" "tasks:delete")
 
 # Find the IDs of the desired scopes and store them in a string
 SCOPE_IDS=""

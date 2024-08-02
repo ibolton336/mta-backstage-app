@@ -221,6 +221,27 @@ export async function createRouter(
     logger.info('PONG!');
     response.json({ status: 'ok' });
   });
+
+  router.get('/targets', async (request, response) => {
+    const getResponse = fetch(baseURLHub + '/targets', {
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json, text/plain, */*',
+        Authorization: 'Bearer ' + response.locals.accessToken,
+      },
+      method: 'GET',
+    });
+
+    const status = await (await getResponse).status;
+    if (status !== 200) {
+      response.status(status);
+      response.json({ status: status });
+      return;
+    }
+    const j = await (await getResponse).json();
+    response.json(j);
+  });
+
   router.get('/applications', async (request, response) => {
     const getResponse = fetch(baseURLHub + '/applications', {
       credentials: 'include',

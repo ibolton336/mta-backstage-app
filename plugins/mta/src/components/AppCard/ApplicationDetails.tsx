@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { InfoCard, LinkButton } from '@backstage/core-components';
 import {
   Grid,
@@ -11,6 +11,7 @@ import {
 } from '@material-ui/core';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { Application } from '../../api/api';
+import { useFetchAllEntities, useFetchApplications } from '../../queries/mta';
 
 const ApplicationDetails = () => {
   const entity = useEntity();
