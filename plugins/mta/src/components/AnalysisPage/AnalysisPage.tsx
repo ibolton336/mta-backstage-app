@@ -1,111 +1,104 @@
+import React from 'react';
 import {
   Box,
   Button,
-  Checkbox,
-  CircularProgress,
   FormControl,
   InputLabel,
-  ListItemText,
   MenuItem,
   Select,
+  CircularProgress,
 } from '@material-ui/core';
-import React, { useState } from 'react';
-import { useFetchApplications, useFetchTargets } from '../../queries/mta';
+import { useForm, Controller } from 'react-hook-form';
+import { useFetchTargets, useFetchApplications } from '../../queries/mta';
+
+interface IFormInput {
+  type: string;
+  targetList: string[];
+}
 
 export const AnalysisPage = () => {
-  const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState({
-    type: '',
-    targetList: [],
+  const { control, handleSubmit, setValue } = useForm<IFormInput>({
+    defaultValues: {
+      type: '',
+      targetList: [],
+    },
   });
-  const types = ['Type 1', 'Type 2', 'Type 3']; // Dummy types, replace with actual data
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const { targets } = useFetchTargets();
   const { applications } = useFetchApplications();
 
-  const handleTypeChange = (event: any) => {
-    setFormData({ ...formData, type: event.target.value });
-  };
+  // Flatten the labels into a single array of options
+  const labelOptions = targets
+    ? targets.flatMap(target =>
+        target?.labels?.map(label => ({
+          label: label.label,
+          name: label.name,
+        })),
+      )
+    : [];
 
-  const handleTargetChange = (event: any) => {
-    setFormData({ ...formData, targetList: event.target.value });
-  };
-
-  const handleAnalyze = () => {
+  const onSubmit = (data: IFormInput) => {
     setIsAnalyzing(true);
-    // Simulate analysis time
+    console.log(data);
     setTimeout(() => {
       setIsAnalyzing(false);
     }, 2000); // Simulates 2 seconds of analysis
   };
-
-  const handleNext = () => {
-    setStep(step + 1);
-  };
-
-  const handleBack = () => {
-    setStep(step - 1);
-  };
-
+  console.log('targets', targets);
   return (
     <Box sx={{ width: '100%', padding: 4 }}>
-      {step === 0 && (
-        <>
-          <FormControl fullWidth>
-            <InputLabel>Type</InputLabel>
-            <Select
-              value={formData.type}
-              label="Type"
-              onChange={handleTypeChange}
-            >
-              {types.map(type => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel>Target List</InputLabel>
-            <Select
-              multiple
-              value={formData.targetList}
-              onChange={handleTargetChange}
-              //   renderValue={selected => selected.join(', ')}
-            >
-              {/* {targets.map(target => (
-                <MenuItem key={target.id} value={target.name}>
-                  <Checkbox
-                  // checked={formData.targetList.indexOf(target) > -1}
-                  />
-                  <ListItemText primary={target.name} />
-                </MenuItem>
-              ))} */}
-            </Select>
-          </FormControl>
-          <Button onClick={handleNext} variant="contained">
-            Next
-          </Button>
-        </>
-      )}
-      {step === 1 && (
-        <>
-          <Button onClick={handleBack}>Back</Button>
-          {/* <Button
-            onClick={handleAnalyze}
-            variant="contained"
-            sx={{ mt: 2, ml: 2 }}
-          >
-            Analyze
-          </Button> */}
-          {isAnalyzing && (
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-              <CircularProgress />
-              <Box sx={{ ml: 2 }}>Analyzing...</Box>
-            </Box>
-          )}
-        </>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Type</InputLabel>
+          <Controller
+            name="type"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                label="Type"
+                // onChange={e => setValue('type', e.target.value)}
+              >
+                {['Source', 'Source + Dependencies'].map(type => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
+          />
+        </FormControl>
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Target List</InputLabel>
+          <Controller
+            name="targetList"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                label="Target List"
+                multiple
+                // onChange={e => setValue('targetList', e.target.value)}
+                // renderValue={selected => selected.join(', ')}
+              >
+                {labelOptions.map(label => (
+                  <MenuItem key={label?.label} value={label?.label}>
+                    {label?.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
+          />
+        </FormControl>
+        <Button type="submit" variant="contained" style={{ marginTop: '15px' }}>
+          Analyze
+        </Button>
+      </form>
+      {isAnalyzing && (
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+          <CircularProgress />
+          <Box sx={{ ml: 2 }}>Analyzing...</Box>
+        </Box>
       )}
     </Box>
   );
