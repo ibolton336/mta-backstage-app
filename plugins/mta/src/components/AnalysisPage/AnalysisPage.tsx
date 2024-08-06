@@ -49,7 +49,7 @@ export const AnalysisPage = () => {
     ? targets?.flatMap(target =>
         target?.labels?.map(label => ({
           label: label.label,
-          name: label.name,
+          name: label?.name || '',
         })),
       )
     : [];
@@ -111,7 +111,7 @@ export const AnalysisPage = () => {
               >
                 {labelOptions.map(label => (
                   <MenuItem key={label?.label} value={label?.label}>
-                    {label?.name}
+                    {label?.name || ''}
                   </MenuItem>
                 ))}
               </Select>

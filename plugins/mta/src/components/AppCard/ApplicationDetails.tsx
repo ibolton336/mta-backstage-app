@@ -15,16 +15,19 @@ import { useFetchAllEntities, useFetchApplications } from '../../queries/mta';
 
 const ApplicationDetails = () => {
   const entity = useEntity();
-  const application = entity.entity.metadata
+  const application = entity?.entity?.metadata
     .application as unknown as Application;
 
   const annotations = entity?.entity?.metadata?.annotations || {};
   const viewUrl = annotations['issues-url'] || '';
+  if (!application) {
+    return null;
+  }
 
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <InfoCard title={`Application: ${application.name}`}>
+        <InfoCard title={`Application: ${application?.name}`}>
           <List dense>
             <LinkButton to={viewUrl} target="_blank">
               View Issues
@@ -84,9 +87,9 @@ const ApplicationDetails = () => {
               {application.tags && application.tags.length > 0 ? (
                 application.tags.map(tag => (
                   <Chip
-                    key={tag.id}
+                    key={tag?.id}
                     label={`Source: ${tag.source || 'Unknown'}, Name: ${
-                      tag.name
+                      tag?.name
                     }`}
                     style={{ margin: 2 }}
                   />
